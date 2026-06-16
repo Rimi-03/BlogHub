@@ -154,10 +154,8 @@ include("admin.php");
         <p class="text-gray-500 mb-8">Showing matching results for: <span class="font-semibold text-blue-600">"<?= htmlspecialchars($search_query); ?>"</span></p>
 
         <?php
-        // Prepare terms for the wildcard matches
         $like_term = "%" . $search_query . "%";
 
-        // Query tests multiple structural columns for complete coverage
         $stmt = $conn->prepare("
             SELECT blogs.*, author.username
             FROM blogs
@@ -337,6 +335,10 @@ include("admin.php");
     <?php } ?>
 
   <?php } ?>
+
+  <footer class="text-center p-6 mt-10 bg-white">
+    <p>© 2026 BlogHub</p>
+  </footer>
 
 </body>
 
