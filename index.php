@@ -14,46 +14,71 @@ include("db.php");
 <body class="bg-gray-100">
 
   <!-- nav bar -->
-  <nav class="bg-white shadow p-4 flex justify-between items-center">
-    <h1 class="font-bold text-xl">
-      <a href="index.php?page=home" class="hover:text-blue-600">BlogHub</a>
-    </h1>
+  <nav class="bg-white shadow">
+    <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
 
-    <div class="flex items-center space-x-4">
-      <a href="index.php?page=home" class="hover:text-gray-600">Home</a>
-      <div class="relative group">
-        <button class="hover:text-gray-600 focus:outline-none">Blogs</button>
-        <div class="absolute hidden group-hover:block bg-white border shadow-md rounded mt-1 w-32 py-1 z-50">
-          <a href="index.php?page=all" class="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-800">All Blogs</a>
-          <a href="index.php?page=popular" class="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-800">Popular</a>
+      <h1 class="font-bold text-2xl">
+        <a href="index.php?page=home" class="hover:text-blue-600">
+          BlogHub
+        </a>
+      </h1>
+
+      <div class="flex flex-wrap justify-center items-center gap-4 text-sm md:text-base">
+        <a href="index.php?page=home" class="hover:text-gray-600">
+          Home
+        </a>
+
+        <div class="relative group">
+          <button class="hover:text-gray-600">
+            Blogs
+          </button>
+
+          <div class="absolute hidden group-hover:block bg-white border shadow-md rounded mt-1 w-40 z-50">
+            <a href="index.php?page=all" class="block px-4 py-2 hover:bg-gray-100">
+              All Blogs
+            </a>
+
+            <a href="index.php?page=popular" class="block px-4 py-2 hover:bg-gray-100">
+              Popular Blogs
+            </a>
+          </div>
         </div>
+
+        <!-- <a href="admin/create_post.php" class="text-blue-600 font-medium">
+          Create Post
+        </a> -->
       </div>
-      <a href="index.php?page=home" class="text-blue-600 font-medium hover:underline">Create Post</a>
+
     </div>
   </nav>
 
   <?php if ($page == 'home') { ?>
     <!-- Hero section -->
-    <section class="bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyPzfJ5ub8Yrp36q4Py4WIqiZ6x_Q4ftcRfHmlOAsTVj-BB6AsFTwHlUA&s=10')] bg-cover bg-center bg-gray-100 py-20 px-8 rounded-b shadow-md">
-      <div class="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
-        <div class="md:w-1/2 bg-white/75 backdrop-blur-sm p-6 rounded-lg shadow-sm">
-          <h1 class="text-5xl font-bold text-gray-800 mb-4">
+    <section class="bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyPzfJ5ub8Yrp36q4Py4WIqiZ6x_Q4ftcRfHmlOAsTVj-BB6AsFTwHlUA&s=10')] bg-cover bg-center bg-gray-100 py-10 md:py-16 px-4 md:px-8 rounded-b shadow-md">
+      <div class="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-stretch gap-8 md:gap-12">
+
+        <div class="w-full md:w-1/2 bg-white/75 backdrop-blur-sm p-6 md:p-8 rounded-lg shadow-sm flex flex-col justify-center">
+          <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4">
             Share Your Ideas With The World
           </h1>
-          <p class="text-gray-600 text-lg mb-6">
+          <p class="text-gray-600 text-base md:text-lg">
             A modern blogging platform where users can create, read, search, and explore blogs. It highlights popular posts and provides a clean interface for publishing and browsing content.
           </p>
         </div>
 
-        <div class="md:w-1/2 mt-10 md:mt-0">
-          <img src="https://images.unsplash.com/photo-1455390582262-044cdead277a" alt="Blog Hero" class="rounded-lg shadow-lg w-full" />
+        <div class="w-full md:w-1/2 flex min-h-[300px] md:min-h-full">
+          <img
+            src="https://images.unsplash.com/photo-1455390582262-044cdead277a"
+            alt="Blog Hero"
+            class="rounded-lg shadow-lg w-full h-full object-cover" />
         </div>
+
       </div>
     </section>
 
     <!-- Search bar -->
-    <div class="p-4 text-center mt-4">
-      <form action="index.php" method="GET" class="max-w-2xl mx-auto">
+    <div class="px-4 py-6">
+      <form action="index.php" method="GET" class="max-w-3xl mx-auto">
         <input type="hidden" name="page" value="search" />
         <div class="relative">
           <svg
@@ -83,9 +108,9 @@ include("db.php");
 
   <?php if ($page == 'home') { ?>
 
-    <div class="p-10 bg-blue-100">
+    <div class="px-4 py-8 md:p-10 bg-blue-100">
       <div class="container mx-auto">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6">
           <h2 class="text-2xl font-bold text-gray-800">Popular Blogs</h2>
           <a href="index.php?page=popular" class="text-blue-600 hover:underline font-medium">View All</a>
         </div>
@@ -119,7 +144,7 @@ include("db.php");
       </div>
     </div>
 
-    <div class="p-10 bg-gray-50">
+    <div class="px-4 py-8 md:p-10 bg-gray-50">
       <div class="container mx-auto">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-gray-800">Recent Stories</h2>
@@ -233,7 +258,7 @@ include("db.php");
             ORDER BY blogs.publish_date DESC
         ");
         ?>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <?php while ($blog = $result->fetch_assoc()) { ?>
             <div class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between">
               <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
@@ -267,7 +292,7 @@ include("db.php");
             ORDER BY blogs.publish_date DESC
         ");
         ?>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <?php while ($blog = $result->fetch_assoc()) { ?>
             <div class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between">
               <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
@@ -305,7 +330,7 @@ include("db.php");
 
     if ($blog_data) {
     ?>
-      <article class="py-12 px-6 max-w-4xl mx-auto bg-white my-8 rounded-xl shadow-sm">
+      <article class="py-6 md:py-12 px-4 md:px-6 max-w-4xl mx-auto bg-white my-8 rounded-xl shadow-sm">
         <div class="relative h-10 flex items-center mb-4">
           <a href="index.php?page=home" class="absolute left-0 p-1 text-gray-600 hover:text-gray-900 transition-colors" aria-label="Go back">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
@@ -315,14 +340,14 @@ include("db.php");
 
         </a>
         <?php if (!empty($blog_data['cover_image'])): ?>
-          <img src="<?= htmlspecialchars($blog_data['cover_image']); ?>" alt="Cover Banner" class="w-full h-[450px] object-cover rounded-xl shadow-sm mb-8" />
+          <img src="<?= htmlspecialchars($blog_data['cover_image']); ?>" alt="Cover Banner" class="w-full  md:h-[450px] object-cover rounded-xl shadow-sm mb-8" />
         <?php endif; ?>
 
-        <h1 class="text-4xl md:text-5xl font-black text-gray-900 leading-tight mb-2">
+        <h1 class="text-2xl md:text-5xl font-black text-gray-900 leading-tight mb-2">
           <?= htmlspecialchars($blog_data['title']); ?>
         </h1>
 
-        <h2 class="text-xl md:text-2xl text-gray-500 font-medium mb-6 italic">
+        <h2 class="text-lg md:text-2xl text-gray-500 font-medium mb-6 italic">
           <?= htmlspecialchars($blog_data['subtitle']); ?>
         </h2>
 
@@ -340,7 +365,7 @@ include("db.php");
           </p>
         </div>
 
-        <div class="text-gray-800 text-lg leading-relaxed whitespace-pre-line font-serif">
+        <div class="text-gray-800 text-base  md:text-lg leading-relaxed whitespace-pre-line font-serif">
           <?= htmlspecialchars($blog_data['content']); ?>
         </div>
       </article>
@@ -354,11 +379,22 @@ include("db.php");
 
   <?php } ?>
 
-  <footer class="text-center p-6 mt-10 bg-white">
-    <p>© 2026 BlogHub</p>
+  <footer class="bg-white mt-10 border-t">
+    <div class="container mx-auto px-4 py-6 text-center">
+      <p class="text-gray-600 text-sm md:text-base">
+        © 2026 BlogHub. All Rights Reserved.
+      </p>
+    </div>
   </footer>
   <script src="index.js"></script>
 
 </body>
 
 </html>
+
+
+<!-- multiple image
+ admin panel
+ - manage crud
+ -create new author
+  -->
