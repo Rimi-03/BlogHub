@@ -1,5 +1,5 @@
 <?php
-include("admin.php");
+include("db.php");
 ?>
 <!doctype html>
 <html lang="en">
@@ -28,7 +28,7 @@ include("admin.php");
           <a href="index.php?page=popular" class="block px-4 py-2 hover:bg-gray-100 text-sm text-gray-800">Popular</a>
         </div>
       </div>
-      <a href="index.php?page=create" class="text-blue-600 font-medium hover:underline">Create Post</a>
+      <a href="index.php?page=home" class="text-blue-600 font-medium hover:underline">Create Post</a>
     </div>
   </nav>
 
@@ -41,8 +41,7 @@ include("admin.php");
             Share Your Ideas With The World
           </h1>
           <p class="text-gray-600 text-lg mb-6">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam
-            velit, rerum nobis recusandae sed iusto cumque, tempore odit.
+            A modern blogging platform where users can create, read, search, and explore blogs. It highlights popular posts and provides a clean interface for publishing and browsing content.
           </p>
         </div>
 
@@ -54,9 +53,30 @@ include("admin.php");
 
     <!-- Search bar -->
     <div class="p-4 text-center mt-4">
-      <form action="index.php" method="GET">
+      <form action="index.php" method="GET" class="max-w-2xl mx-auto">
         <input type="hidden" name="page" value="search" />
-        <input type="text" name="q" value="<?= htmlspecialchars($_GET['q'] ?? ''); ?>" placeholder="Search blogs..." class="p-2 border rounded w-1/2 shadow-sm focus:outline-blue-500" />
+        <div class="relative">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-5 h-5 absolute right-3 top-3.5 text-gray-400 pointer-events-none z-10"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+
+          <input type="text" id="searchInput" name="q" value="<?= htmlspecialchars($_GET['q'] ?? ''); ?>" placeholder="Search blogs..." autocomplete="off"
+            class="w-full pl-4 pr-10 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+          <div
+            id="suggestions"
+            class="absolute w-full bg-white border rounded-lg shadow-lg mt-1 hidden z-50 text-left overflow-hidden">
+          </div>
+        </div>
       </form>
     </div>
   <?php } ?>
@@ -162,12 +182,10 @@ include("admin.php");
             JOIN author ON blogs.author_id = author.author_id
             WHERE blogs.title LIKE ? 
                OR blogs.subtitle LIKE ? 
-               OR blogs.description LIKE ? 
-               OR blogs.content LIKE ?
                OR author.username LIKE ?
             ORDER BY blogs.publish_date DESC
         ");
-        $stmt->bind_param("sssss", $like_term, $like_term, $like_term, $like_term, $like_term);
+        $stmt->bind_param("sss", $like_term, $like_term, $like_term);
         $stmt->execute();
         $search_result = $stmt->get_result();
         $stmt->close();
@@ -185,7 +203,7 @@ include("admin.php");
                   </div>
                   <div class="mt-4">
                     <p class="text-xs text-gray-400 mb-2"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
-                    <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More →</a>
+                    <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
                   </div>
                 </div>
               </div>
@@ -339,6 +357,7 @@ include("admin.php");
   <footer class="text-center p-6 mt-10 bg-white">
     <p>© 2026 BlogHub</p>
   </footer>
+  <script src="index.js"></script>
 
 </body>
 
