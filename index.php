@@ -1,8 +1,5 @@
 <?php
 include("admin.php");
-
-// Fallback logic if the 'page' parameter isn't present in the URL query string
-$page = $_GET['page'] ?? 'home';
 ?>
 <!doctype html>
 <html lang="en">
@@ -16,6 +13,7 @@ $page = $_GET['page'] ?? 'home';
 
 <body class="bg-gray-100">
 
+  <!-- nav bar -->
   <nav class="bg-white shadow p-4 flex justify-between items-center">
     <h1 class="font-bold text-xl">
       <a href="index.php?page=home" class="hover:text-blue-600">BlogHub</a>
@@ -35,6 +33,7 @@ $page = $_GET['page'] ?? 'home';
   </nav>
 
   <?php if ($page == 'home') { ?>
+    <!-- Hero section -->
     <section class="bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyPzfJ5ub8Yrp36q4Py4WIqiZ6x_Q4ftcRfHmlOAsTVj-BB6AsFTwHlUA&s=10')] bg-cover bg-center bg-gray-100 py-20 px-8 rounded-b shadow-md">
       <div class="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
         <div class="md:w-1/2 bg-white/75 backdrop-blur-sm p-6 rounded-lg shadow-sm">
@@ -53,10 +52,11 @@ $page = $_GET['page'] ?? 'home';
       </div>
     </section>
 
+    <!-- Search bar -->
     <div class="p-4 text-center mt-4">
       <form action="index.php" method="GET">
         <input type="hidden" name="page" value="search" />
-        <input type="text" name="q" placeholder="Search blogs..." class="p-2 border rounded w-1/2 shadow-sm focus:outline-blue-500" />
+        <input type="text" name="q" value="<?= htmlspecialchars($_GET['q'] ?? ''); ?>" placeholder="Search blogs..." class="p-2 border rounded w-1/2 shadow-sm focus:outline-blue-500" />
       </form>
     </div>
   <?php } ?>
@@ -67,7 +67,7 @@ $page = $_GET['page'] ?? 'home';
       <div class="container mx-auto">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-gray-800">Popular Blogs</h2>
-          <a href="index.php?page=popular" class="text-blue-600 hover:underline font-medium">View More →</a>
+          <a href="index.php?page=popular" class="text-blue-600 hover:underline font-medium">View All</a>
         </div>
 
         <?php
@@ -90,7 +90,7 @@ $page = $_GET['page'] ?? 'home';
                 </div>
                 <div class="mt-4">
                   <p class="text-xs text-gray-400 mb-2"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
-                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More →</a>
+                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
                 </div>
               </div>
             </div>
@@ -103,7 +103,7 @@ $page = $_GET['page'] ?? 'home';
       <div class="container mx-auto">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-gray-800">Recent Stories</h2>
-          <a href="index.php?page=all" class="text-blue-600 hover:underline font-medium">View All →</a>
+          <a href="index.php?page=all" class="text-blue-600 hover:underline font-medium">View All</a>
         </div>
 
         <?php
@@ -126,7 +126,7 @@ $page = $_GET['page'] ?? 'home';
                 </div>
                 <div class="mt-4">
                   <p class="text-xs text-gray-400 mb-2"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
-                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More →</a>
+                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
                 </div>
               </div>
             </div>
@@ -135,6 +135,73 @@ $page = $_GET['page'] ?? 'home';
       </div>
     </div>
 
+  <?php } elseif ($page == 'search') { ?>
+
+    <div class="p-10 bg-gray-50">
+      <div class="container mx-auto">
+        <?php
+        $search_query = $_GET['q'] ?? '';
+        ?>
+        <div class="relative mb-6 flex items-center justify-center">
+          <a href="index.php?page=home" class="absolute left-0 p-1 text-gray-600 hover:text-gray-900 transition-colors" aria-label="Go back">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+            </svg>
+          </a>
+
+          <h2 class="text-3xl font-bold text-gray-800">Search Results</h2>
+        </div>
+        <p class="text-gray-500 mb-8">Showing matching results for: <span class="font-semibold text-blue-600">"<?= htmlspecialchars($search_query); ?>"</span></p>
+
+        <?php
+        // Prepare terms for the wildcard matches
+        $like_term = "%" . $search_query . "%";
+
+        // Query tests multiple structural columns for complete coverage
+        $stmt = $conn->prepare("
+            SELECT blogs.*, author.username
+            FROM blogs
+            JOIN author ON blogs.author_id = author.author_id
+            WHERE blogs.title LIKE ? 
+               OR blogs.subtitle LIKE ? 
+               OR blogs.description LIKE ? 
+               OR blogs.content LIKE ?
+               OR author.username LIKE ?
+            ORDER BY blogs.publish_date DESC
+        ");
+        $stmt->bind_param("sssss", $like_term, $like_term, $like_term, $like_term, $like_term);
+        $stmt->execute();
+        $search_result = $stmt->get_result();
+        $stmt->close();
+
+        if ($search_result->num_rows > 0) {
+        ?>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <?php while ($blog = $search_result->fetch_assoc()) { ?>
+              <div class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between">
+                <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
+                <div class="p-4 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
+                    <p class="text-xs text-gray-500 font-medium">By <?= htmlspecialchars($blog['username']); ?></p>
+                  </div>
+                  <div class="mt-4">
+                    <p class="text-xs text-gray-400 mb-2"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
+                    <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More →</a>
+                  </div>
+                </div>
+              </div>
+            <?php } ?>
+          </div>
+        <?php } else { ?>
+          <div class="text-center py-16 bg-white rounded-lg shadow-sm max-w-xl mx-auto p-6">
+            <p class="text-xl font-bold text-gray-700 mb-2">No matching posts found</p>
+            <p class="text-gray-400 mb-6">We couldn't find any articles containing your keywords. Try refining your spelling or searching for a different phrase.</p>
+            <a href="index.php?page=home" class="text-sm bg-blue-600 text-white font-medium px-4 py-2 rounded shadow hover:bg-blue-700 transition">View Home Feed</a>
+          </div>
+        <?php } ?>
+      </div>
+    </div>
   <?php } elseif ($page == 'popular') { ?>
 
     <div class="p-10 bg-blue-50">
@@ -142,7 +209,6 @@ $page = $_GET['page'] ?? 'home';
         <h2 class="text-3xl font-bold text-gray-800 mb-6">Trending & Popular Blogs</h2>
 
         <?php
-        // Fetches all popular blogs without page-limit constraints
         $result = $conn->query("
             SELECT blogs.*, author.username
             FROM blogs
@@ -162,7 +228,7 @@ $page = $_GET['page'] ?? 'home';
                 </div>
                 <div class="mt-4">
                   <p class="text-xs text-gray-400 mb-2"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
-                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More →</a>
+                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
                 </div>
               </div>
             </div>
@@ -196,7 +262,7 @@ $page = $_GET['page'] ?? 'home';
                 </div>
                 <div class="mt-4">
                   <p class="text-xs text-gray-400 mb-2"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
-                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More →</a>
+                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
                 </div>
               </div>
             </div>
@@ -224,8 +290,14 @@ $page = $_GET['page'] ?? 'home';
     if ($blog_data) {
     ?>
       <article class="py-12 px-6 max-w-4xl mx-auto bg-white my-8 rounded-xl shadow-sm">
-        <a href="index.php?page=home" class="text-blue-600 hover:underline inline-block mb-6 font-semibold">← Back to Homepage</a>
+        <div class="relative h-10 flex items-center mb-4">
+          <a href="index.php?page=home" class="absolute left-0 p-1 text-gray-600 hover:text-gray-900 transition-colors" aria-label="Go back">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+            </svg>
+        </div>
 
+        </a>
         <?php if (!empty($blog_data['cover_image'])): ?>
           <img src="<?= htmlspecialchars($blog_data['cover_image']); ?>" alt="Cover Banner" class="w-full h-[450px] object-cover rounded-xl shadow-sm mb-8" />
         <?php endif; ?>
