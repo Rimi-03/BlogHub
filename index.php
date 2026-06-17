@@ -110,9 +110,15 @@ include("db.php");
 
     <div class="px-4 py-8 md:p-10 bg-blue-100">
       <div class="container mx-auto">
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">Popular Blogs</h2>
-          <a href="index.php?page=popular" class="text-blue-600 hover:underline font-medium">View All</a>
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-800">
+            Popular Blogs
+          </h2>
+
+          <a href="index.php?page=popular"
+            class="text-blue-600 hover:underline font-medium">
+            View All
+          </a>
         </div>
 
         <?php
@@ -120,30 +126,36 @@ include("db.php");
             SELECT blogs.*, author.username
             FROM blogs
             JOIN author ON blogs.author_id = author.author_id
+            WHERE blogs.views >= 5
             ORDER BY blogs.views DESC
             LIMIT 4
         ");
         ?>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <?php while ($blog = $result->fetch_assoc()) { ?>
-            <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover" />
-              <div class="p-4 flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 class="font-bold text-gray-800 text-lg mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
-                  <p class="text-xs text-gray-500 font-medium">By <?= htmlspecialchars($blog['username']); ?></p>
-                </div>
-                <div class="mt-4">
-                  <div class="flex justify-between items-center mb-2">
-                    <p class="text-xs text-gray-400"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
-                    <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold border border-blue-100"><?= number_format($blog['views']) ?> views</span>
+          <?php if ($result->num_rows > 0) { ?>
+            <?php while ($blog = $result->fetch_assoc()) { ?>
+              <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover" />
+                <div class="p-4 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 class="font-bold text-gray-800 text-lg mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
+                    <p class="text-xs text-gray-500 font-medium">By <?= htmlspecialchars($blog['username']); ?></p>
                   </div>
-                  <span class="text-blue-600 hover:underline font-semibold block">Read More</span>
+                  <div class="mt-4">
+                    <div class="flex justify-between items-center mb-2">
+                      <p class="text-xs text-gray-400"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
+                      <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold border border-blue-100"><?= number_format($blog['views']) ?> views</span>
+                    </div>
+                    <span class="text-blue-600 hover:underline font-semibold block">Read More</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            <?php } ?>
+          <?php } else { ?>
+            <p class="text-gray-500 italic col-span-full py-4">No trending topics available right now. Check back later!</p>
           <?php } ?>
         </div>
       </div>
+    </div>
     </div>
 
     <div class="px-4 py-8 md:p-10 bg-gray-50">
@@ -268,28 +280,34 @@ include("db.php");
             SELECT blogs.*, author.username
             FROM blogs
             JOIN author ON blogs.author_id = author.author_id
+            WHERE blogs.views > 5
             ORDER BY blogs.views DESC
         ");
         ?>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <?php while ($blog = $result->fetch_assoc()) { ?>
-            <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
-              <div class="p-4 flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 class="font-bold text-lg text-gray-800 mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
-                  <p class="text-xs text-gray-500 font-medium">By <?= htmlspecialchars($blog['username']); ?></p>
-                </div>
-                <div class="mt-4">
-                  <div class="flex justify-between items-center mb-2">
-                    <p class="text-xs text-gray-400"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
-                    <span class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold border border-blue-100"><?= number_format($blog['views']) ?> views</span>
-                  </div> <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
+          <?php if ($result->num_rows > 0) { ?>
+            <?php while ($blog = $result->fetch_assoc()) { ?>
+              <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
+                <div class="p-4 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
+                    <p class="text-xs text-gray-500 font-medium">By <?= htmlspecialchars($blog['username']); ?></p>
+                  </div>
+                  <div class="mt-4">
+                    <div class="flex justify-between items-center mb-2">
+                      <p class="text-xs text-gray-400"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
+                      <span class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold border border-blue-100"><?= number_format($blog['views']) ?> views</span>
+                    </div> <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
+                  </div>
                 </div>
               </div>
-            </div>
+            <?php } ?>
+          <?php } else { ?>
+            <p class="text-gray-500 italic col-span-full py-4">No trending topics available right now. Check back later!</p>
           <?php } ?>
         </div>
       </div>
+    </div>
     </div>
 
   <?php } elseif ($page == 'all') { ?>
@@ -414,10 +432,3 @@ include("db.php");
 </body>
 
 </html>
-
-
-<!-- multiple image
- admin panel
- - manage crud
- -create new author
-  -->

@@ -82,7 +82,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         $description = trim($_POST['description']);
         $content = trim($_POST['content']);
         $author_id = intval($_POST['author_id']);
-        // $is_popular = isset($_POST['is_popular']) ? 1 : 0;
 
         $cover_image = 'https://images.unsplash.com/photo-1455390582262-044cdead277a';
         if (isset($_FILES['cover_image']) && $_FILES['cover_image']['error'] === UPLOAD_ERR_OK) {
@@ -99,8 +98,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             }
         }
 
-        $stmt = $conn->prepare("INSERT INTO blogs (title, subtitle, description, content, author_id, cover_image, publish_date) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
-        $stmt->bind_param("ssssis", $title, $subtitle, $description, $content, $author_id, $cover_image);
+        $stmt = $conn->prepare("INSERT INTO blogs (title, subtitle, description, content, author_id, cover_image, publish_date) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+        $stmt->bind_param("ssssiss", $title, $subtitle, $description, $content, $author_id, $cover_image);
 
         if ($stmt->execute()) {
             $_SESSION['flash_message'] = "Blog post created successfully!";
@@ -121,7 +120,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         $description = trim($_POST['description']);
         $content = trim($_POST['content']);
         $author_id = intval($_POST['author_id']);
-        // $is_popular = isset($_POST['is_popular']) ? 1 : 0;
         $cover_image = trim($_POST['existing_cover_image']);
 
         if (isset($_FILES['cover_image']) && $_FILES['cover_image']['error'] === UPLOAD_ERR_OK) {
@@ -139,7 +137,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         }
 
         $stmt = $conn->prepare("UPDATE blogs SET title=?, subtitle=?, description=?, content=?, author_id=?, cover_image=? WHERE blog_id=?");
-        $stmt->bind_param("ssssisii", $title, $subtitle, $description, $content, $author_id, $cover_image, $blog_id);
+        $stmt->bind_param("ssssisi", $title, $subtitle, $description, $content, $author_id, $cover_image, $blog_id);
 
         if ($stmt->execute()) {
             $_SESSION['flash_message'] = "Blog post updated successfully!";
@@ -288,7 +286,7 @@ $is_form_active = ($edit_blog);
                     class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 
                        bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition border border-blue-100 shadow-sm"
                     aria-label="Open Author Management Hub">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    <svg xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24"
                         stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -355,18 +353,11 @@ $is_form_active = ($edit_blog);
                     <textarea name="content" rows="5" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none font-serif" placeholder="Write content..."><?= $edit_blog ? htmlspecialchars($edit_blog['content']) : '' ?></textarea>
                 </div>
 
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
-                    <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="is_popular" value="1" <?= ($edit_blog && $edit_blog['is_popular'] == 1) ? 'checked' : '' ?> class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
-                        <span class="text-xs font-semibold text-gray-700">Feature on "Popular Blogs" Feed Banner</span>
-                    </label>
-
-                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                        <button type="button" onclick="toggleCreatePostForm()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition">View Recent Posts</button>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition shadow-sm">
-                            <?= $edit_blog ? 'Save Changes' : 'Publish Article' ?>
-                        </button>
-                    </div>
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" onclick="toggleCreatePostForm()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition">View Recent Posts</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition shadow-sm">
+                        <?= $edit_blog ? 'Save Changes' : 'Publish Article' ?>
+                    </button>
                 </div>
             </form>
         </div>
@@ -403,9 +394,6 @@ $is_form_active = ($edit_blog);
                             </div>
 
                             <div class="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-0 pt-2 sm:pt-0 shrink-0">
-                                <!-- <button onclick="openBlogReadModal(<?= $blog['blog_id'] ?>)" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 border border-blue-100 rounded-lg transition font-semibold">
-                                    Read
-                                </button> -->
                                 <button onclick="event.stopPropagation(); window.location.href='dashboard.php?edit_id=<?= $blog['blog_id'] ?><?= $filter_author_id ? '&author_view_id=' . $filter_author_id : '' ?>'"
                                     class="text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium">
                                     Edit
@@ -437,10 +425,6 @@ $is_form_active = ($edit_blog);
 
             <div class="overflow-y-auto space-y-4 pr-1 flex-1" id="blogReadContent">
             </div>
-
-            <!-- <div class="flex justify-end pt-3 mt-3 border-t shrink-0">
-                <button type="button" onclick="closeBlogReadModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-xl transition">Done</button>
-            </div> -->
         </div>
     </div>
 
