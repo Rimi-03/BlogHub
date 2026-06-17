@@ -126,8 +126,7 @@ include("db.php");
         ?>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <?php while ($blog = $result->fetch_assoc()) { ?>
-            <div class="bg-white rounded shadow overflow-hidden flex flex-col justify-between">
-              <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover" />
+            <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover" />
               <div class="p-4 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 class="font-bold text-gray-800 text-lg mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
@@ -138,7 +137,7 @@ include("db.php");
                     <p class="text-xs text-gray-400"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
                     <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold border border-blue-100"><?= number_format($blog['views']) ?> views</span>
                   </div>
-                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
+                  <span class="text-blue-600 hover:underline font-semibold block">Read More</span>
                 </div>
               </div>
             </div>
@@ -165,8 +164,7 @@ include("db.php");
         ?>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <?php while ($blog = $result->fetch_assoc()) { ?>
-            <div class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between">
-              <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
+            <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
               <div class="p-4 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 class="font-bold text-lg text-gray-800 mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
@@ -224,8 +222,7 @@ include("db.php");
         ?>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <?php while ($blog = $search_result->fetch_assoc()) { ?>
-              <div class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between">
-                <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
+              <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
                 <div class="p-4 flex-1 flex flex-col justify-between">
                   <div>
                     <h3 class="font-bold text-lg text-gray-800 mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
@@ -276,8 +273,7 @@ include("db.php");
         ?>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <?php while ($blog = $result->fetch_assoc()) { ?>
-            <div class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between">
-              <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
+            <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
               <div class="p-4 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 class="font-bold text-lg text-gray-800 mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
@@ -312,8 +308,7 @@ include("db.php");
         ?>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <?php while ($blog = $result->fetch_assoc()) { ?>
-            <div class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between">
-              <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
+            <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
               <div class="p-4 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 class="font-bold text-lg text-gray-800 mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
