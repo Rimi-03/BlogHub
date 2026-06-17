@@ -120,7 +120,7 @@ include("db.php");
             SELECT blogs.*, author.username
             FROM blogs
             JOIN author ON blogs.author_id = author.author_id
-            WHERE blogs.is_popular = 1
+            ORDER BY blogs.views DESC
             LIMIT 4
         ");
         ?>
@@ -134,7 +134,10 @@ include("db.php");
                   <p class="text-xs text-gray-500 font-medium">By <?= htmlspecialchars($blog['username']); ?></p>
                 </div>
                 <div class="mt-4">
-                  <p class="text-xs text-gray-400 mb-2"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
+                  <div class="flex justify-between items-center mb-2">
+                    <p class="text-xs text-gray-400"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
+                    <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold border border-blue-100"><?= number_format($blog['views']) ?> views</span>
+                  </div>
                   <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
                 </div>
               </div>
@@ -170,8 +173,10 @@ include("db.php");
                   <p class="text-xs text-gray-500 font-medium">By <?= htmlspecialchars($blog['username']); ?></p>
                 </div>
                 <div class="mt-4">
-                  <p class="text-xs text-gray-400 mb-2"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
-                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
+                  <div class="flex justify-between items-center mb-2">
+                    <p class="text-xs text-gray-400"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
+                    <span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-medium"><?= number_format($blog['views']) ?> views</span>
+                  </div> <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
                 </div>
               </div>
             </div>
@@ -254,8 +259,7 @@ include("db.php");
             SELECT blogs.*, author.username
             FROM blogs
             JOIN author ON blogs.author_id = author.author_id
-            WHERE blogs.is_popular = 1
-            ORDER BY blogs.publish_date DESC
+            ORDER BY blogs.views DESC
         ");
         ?>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -268,8 +272,10 @@ include("db.php");
                   <p class="text-xs text-gray-500 font-medium">By <?= htmlspecialchars($blog['username']); ?></p>
                 </div>
                 <div class="mt-4">
-                  <p class="text-xs text-gray-400 mb-2"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
-                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
+                  <div class="flex justify-between items-center mb-2">
+                    <p class="text-xs text-gray-400"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
+                    <span class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold border border-blue-100"><?= number_format($blog['views']) ?> views</span>
+                  </div> <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
                 </div>
               </div>
             </div>
@@ -302,8 +308,10 @@ include("db.php");
                   <p class="text-xs text-gray-500 font-medium">By <?= htmlspecialchars($blog['username']); ?></p>
                 </div>
                 <div class="mt-4">
-                  <p class="text-xs text-gray-400 mb-2"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
-                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
+                  <div class="flex justify-between items-center mb-2">
+                    <p class="text-xs text-gray-400"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
+                    <span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-medium"><?= number_format($blog['views']) ?> views</span>
+                  </div> <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
                 </div>
               </div>
             </div>
@@ -316,6 +324,11 @@ include("db.php");
 
     <?php
     $blog_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+    if ($blog_id > 0) {
+      // Increment the views column by 1 for this specific blog post
+      $conn->query("UPDATE blogs SET views = views + 1 WHERE blog_id = $blog_id");
+    }
 
     $stmt = $conn->prepare("
         SELECT blogs.*, author.username 
@@ -355,6 +368,9 @@ include("db.php");
           <div class="text-sm">
             <p class="font-bold text-gray-800">By <?= htmlspecialchars($blog_data['username']); ?></p>
             <p class="text-gray-400 text-xs">Published on: <?= date('F d, Y', strtotime($blog_data['publish_date'])); ?></p>
+          </div>
+          <div class="bg-blue-50 border border-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5">
+            <span><?= number_format($blog_data['views']) ?> Views</span>
           </div>
         </div>
 

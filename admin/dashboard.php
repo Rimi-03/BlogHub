@@ -82,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         $description = trim($_POST['description']);
         $content = trim($_POST['content']);
         $author_id = intval($_POST['author_id']);
-        $is_popular = isset($_POST['is_popular']) ? 1 : 0;
+        // $is_popular = isset($_POST['is_popular']) ? 1 : 0;
 
         $cover_image = 'https://images.unsplash.com/photo-1455390582262-044cdead277a';
         if (isset($_FILES['cover_image']) && $_FILES['cover_image']['error'] === UPLOAD_ERR_OK) {
@@ -99,8 +99,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             }
         }
 
-        $stmt = $conn->prepare("INSERT INTO blogs (title, subtitle, description, content, author_id, cover_image, is_popular, publish_date) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
-        $stmt->bind_param("ssssisi", $title, $subtitle, $description, $content, $author_id, $cover_image, $is_popular);
+        $stmt = $conn->prepare("INSERT INTO blogs (title, subtitle, description, content, author_id, cover_image, publish_date) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+        $stmt->bind_param("ssssis", $title, $subtitle, $description, $content, $author_id, $cover_image);
 
         if ($stmt->execute()) {
             $_SESSION['flash_message'] = "Blog post created successfully!";
@@ -121,7 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         $description = trim($_POST['description']);
         $content = trim($_POST['content']);
         $author_id = intval($_POST['author_id']);
-        $is_popular = isset($_POST['is_popular']) ? 1 : 0;
+        // $is_popular = isset($_POST['is_popular']) ? 1 : 0;
         $cover_image = trim($_POST['existing_cover_image']);
 
         if (isset($_FILES['cover_image']) && $_FILES['cover_image']['error'] === UPLOAD_ERR_OK) {
@@ -138,8 +138,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             }
         }
 
-        $stmt = $conn->prepare("UPDATE blogs SET title=?, subtitle=?, description=?, content=?, author_id=?, cover_image=?, is_popular=? WHERE blog_id=?");
-        $stmt->bind_param("ssssisii", $title, $subtitle, $description, $content, $author_id, $cover_image, $is_popular, $blog_id);
+        $stmt = $conn->prepare("UPDATE blogs SET title=?, subtitle=?, description=?, content=?, author_id=?, cover_image=? WHERE blog_id=?");
+        $stmt->bind_param("ssssisii", $title, $subtitle, $description, $content, $author_id, $cover_image, $blog_id);
 
         if ($stmt->execute()) {
             $_SESSION['flash_message'] = "Blog post updated successfully!";
@@ -395,9 +395,9 @@ $is_form_active = ($edit_blog);
                                         <span>By <strong class="text-blue-600 font-medium"><?= htmlspecialchars($blog['username']) ?></strong></span>
                                         <span>•</span>
                                         <span><?= date('M d, Y', strtotime($blog['publish_date'])) ?></span>
-                                        <?php if ($blog['is_popular']): ?>
-                                            <span class="bg-amber-50 border border-amber-200 text-amber-700 px-1.5 py-0.2 rounded text-[10px] font-bold">Popular</span>
-                                        <?php endif; ?>
+                                        <span class="bg-blue-50 border border-blue-200 text-blue-700 px-1.5 py-0.2 rounded text-[10px] font-bold">
+                                            <?= number_format($blog['views']) ?> Views
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -509,7 +509,6 @@ $is_form_active = ($edit_blog);
 
 <!-- 
 multiple image
- read
  popular(on view)
- session(authentication)
+ session(admin authentication)
  dynamic -->
