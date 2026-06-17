@@ -7,7 +7,7 @@ if (!isset($_SESSION["admin_id"])) {
     exit();
 }
 
-// --- NEW AJAX ENDPOINT FOR FETCHING FULL BLOG CONTENT ---
+// --- AJAX ENDPOINT: FETCH FULL BLOG CONTENT + GALLERY ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] === 'ajax_get_blog_body') {
     header('Content-Type: application/json');
     $blog_id = intval($_POST['blog_id']);
@@ -20,10 +20,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
 
     if ($blog_data) {
         $blog_data['publish_date_formatted'] = date('F d, Y', strtotime($blog_data['publish_date']));
-        // Normalize cover image path
         if (strpos($blog_data['cover_image'], 'http') !== 0) {
             $blog_data['cover_image'] = '../' . $blog_data['cover_image'];
         }
+
+        // Fetch additional gallery images
+        $img_stmt = $conn->prepare("SELECT image_path FROM blog_images WHERE blog_id = ?");
+        $img_stmt->bind_param("i", $blog_id);
+        $img_stmt->execute();
+        $img_res = $img_stmt->get_result();
+        $gallery = [];
+        while ($img_row = $img_res->fetch_assoc()) {
+            $gallery[] = (strpos($img_row['image_path'], 'http') === 0) ? $img_row['image_path'] : '../' . $img_row['image_path'];
+        }
+        $img_stmt->close();
+        $blog_data['gallery'] = $gallery;
+
         echo json_encode(['success' => true, 'blog' => $blog_data]);
     } else {
         echo json_encode(['success' => false, 'error' => 'Blog story not found.']);
@@ -31,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
     exit();
 }
 
-// --- AJAX ENDPOINT FOR CREATING AUTHOR WITHOUT REFRESHING ---
+// --- AJAX ENDPOINT: CREATE AUTHOR AD-HOC ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] === 'ajax_create_author') {
     header('Content-Type: application/json');
     $username = trim($_POST['username']);
@@ -65,17 +77,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
     exit();
 }
 
-// --- POST/REDIRECT/GET ENGINE ---
+// --- POST/REDIRECT/GET FORM ENGINE ---
 $message = isset($_SESSION['flash_message']) ? $_SESSION['flash_message'] : "";
 $error = isset($_SESSION['flash_error']) ? $_SESSION['flash_error'] : "";
 
 unset($_SESSION['flash_message']);
 unset($_SESSION['flash_error']);
 
-// Handle Standard Form POST Actions
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
 
-    // --- CREATE BLOG ---
+    $handle_gallery_uploads = function ($blog_id, $conn) {
+        $upload_dir = '../uploads/';
+        if (!is_dir($upload_dir)) {
+            mkdir($upload_dir, 0755, true);
+        }
+
+        if (isset($_FILES['additional_images']) && is_array($_FILES['additional_images']['name'])) {
+            $total_files = count($_FILES['additional_images']['name']);
+            if ($total_files > 7) {
+                $_SESSION['flash_error'] = "Upload failed! You can upload a maximum of 7 additional images.";
+                header("Location: dashboard.php");
+                exit();
+            }
+
+            foreach ($_FILES['additional_images']['name'] as $key => $name) {
+                if ($_FILES['additional_images']['error'][$key] === UPLOAD_ERR_OK) {
+                    $file_tmp = $_FILES['additional_images']['tmp_name'][$key];
+                    $file_mime = mime_content_type($file_tmp);
+                    if (strpos($file_mime, 'image/') !== 0) {
+                        continue;
+                    }
+
+                    $file_name = time() . '_' . uniqid() . '_' . basename($name);
+                    if (move_uploaded_file($file_tmp, $upload_dir . $file_name)) {
+                        $saved_path = 'uploads/' . $file_name;
+                        $img_stmt = $conn->prepare("INSERT INTO blog_images (blog_id, image_path) VALUES (?, ?)");
+                        $img_stmt->bind_param("is", $blog_id, $saved_path);
+                        $img_stmt->execute();
+                        $img_stmt->close();
+                    }
+                }
+            }
+        }
+    };
+
+    // --- ACTION: CREATE BLOG ---
     if ($_POST['action'] === 'create_blog') {
         $title = trim($_POST['title']);
         $subtitle = trim($_POST['subtitle']);
@@ -88,21 +134,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             $file_tmp = $_FILES['cover_image']['tmp_name'];
             $file_name = time() . '_' . basename($_FILES['cover_image']['name']);
             $upload_dir = '../uploads/';
-
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0755, true);
             }
-
             if (move_uploaded_file($file_tmp, $upload_dir . $file_name)) {
                 $cover_image = 'uploads/' . $file_name;
             }
         }
 
         $stmt = $conn->prepare("INSERT INTO blogs (title, subtitle, description, content, author_id, cover_image, publish_date) VALUES (?, ?, ?, ?, ?, ?, NOW())");
-        $stmt->bind_param("ssssiss", $title, $subtitle, $description, $content, $author_id, $cover_image);
+        $stmt->bind_param("ssssis", $title, $subtitle, $description, $content, $author_id, $cover_image);
 
         if ($stmt->execute()) {
-            $_SESSION['flash_message'] = "Blog post created successfully!";
+            $new_blog_id = $conn->insert_id;
+            $handle_gallery_uploads($new_blog_id, $conn);
+            if (!isset($_SESSION['flash_error'])) {
+                $_SESSION['flash_message'] = "Blog post created successfully with gallery items!";
+            }
         } else {
             $_SESSION['flash_error'] = "Failed to create blog post.";
         }
@@ -112,7 +160,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         exit();
     }
 
-    // --- UPDATE BLOG ---
+    // --- ACTION: UPDATE BLOG ---
     if ($_POST['action'] === 'update_blog') {
         $blog_id = intval($_POST['blog_id']);
         $title = trim($_POST['title']);
@@ -126,11 +174,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
             $file_tmp = $_FILES['cover_image']['tmp_name'];
             $file_name = time() . '_' . basename($_FILES['cover_image']['name']);
             $upload_dir = '../uploads/';
-
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0755, true);
             }
-
             if (move_uploaded_file($file_tmp, $upload_dir . $file_name)) {
                 $cover_image = 'uploads/' . $file_name;
             }
@@ -140,7 +186,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         $stmt->bind_param("ssssisi", $title, $subtitle, $description, $content, $author_id, $cover_image, $blog_id);
 
         if ($stmt->execute()) {
-            $_SESSION['flash_message'] = "Blog post updated successfully!";
+            if (isset($_POST['clear_existing_gallery'])) {
+                $clear_stmt = $conn->prepare("DELETE FROM blog_images WHERE blog_id = ?");
+                $clear_stmt->bind_param("i", $blog_id);
+                $clear_stmt->execute();
+                $clear_stmt->close();
+            }
+            $handle_gallery_uploads($blog_id, $conn);
+            if (!isset($_SESSION['flash_error'])) {
+                $_SESSION['flash_message'] = "Blog post updated successfully!";
+            }
         } else {
             $_SESSION['flash_error'] = "Failed to update blog post.";
         }
@@ -150,7 +205,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         exit();
     }
 
-    // --- DELETE BLOG ---
+    // --- ACTION: DELETE BLOG ---
     if ($_POST['action'] === 'delete_blog') {
         $blog_id = intval($_POST['blog_id']);
         $stmt = $conn->prepare("DELETE FROM blogs WHERE blog_id = ?");
@@ -166,7 +221,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
         exit();
     }
 
-    // --- DELETE AUTHOR PROFILE ---
+    // --- ACTION: DELETE AUTHOR ---
     if ($_POST['action'] === 'delete_author') {
         $author_id = intval($_POST['author_id']);
         $stmt = $conn->prepare("DELETE FROM author WHERE author_id = ?");
@@ -183,7 +238,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
     }
 }
 
-// 3. Handle Active Author Filter via GET Parameter
+// Fetch Filters and Runtime Views
 $filter_author_id = isset($_GET['author_view_id']) ? intval($_GET['author_view_id']) : null;
 $active_author_name = "";
 
@@ -198,14 +253,12 @@ if ($filter_author_id) {
     $auth_stmt->close();
 }
 
-// 4. Fetch All Available Authors
 $authors_res = $conn->query("SELECT * FROM author ORDER BY username ASC");
 $authors = [];
 while ($r = $authors_res->fetch_assoc()) {
     $authors[] = $r;
 }
 
-// 5. Fetch Blogs
 if ($filter_author_id) {
     $blog_stmt = $conn->prepare("SELECT blogs.*, author.username FROM blogs JOIN author ON blogs.author_id = author.author_id WHERE blogs.author_id = ? ORDER BY blogs.publish_date DESC");
     $blog_stmt->bind_param("i", $filter_author_id);
@@ -215,8 +268,8 @@ if ($filter_author_id) {
     $blogs_res = $conn->query("SELECT blogs.*, author.username FROM blogs JOIN author ON blogs.author_id = author.author_id ORDER BY blogs.publish_date DESC");
 }
 
-// 6. Handle Target Blog for Editing view
 $edit_blog = null;
+$existing_gallery_count = 0;
 if (isset($_GET['edit_id'])) {
     $edit_id = intval($_GET['edit_id']);
     $edit_stmt = $conn->prepare("SELECT * FROM blogs WHERE blog_id = ?");
@@ -224,9 +277,14 @@ if (isset($_GET['edit_id'])) {
     $edit_stmt->execute();
     $edit_blog = $edit_stmt->get_result()->fetch_assoc();
     $edit_stmt->close();
+
+    if ($edit_blog) {
+        $count_res = $conn->query("SELECT COUNT(*) as total FROM blog_images WHERE blog_id = " . $edit_blog['blog_id']);
+        $existing_gallery_count = $count_res->fetch_assoc()['total'] ?? 0;
+    }
 }
 
-$is_form_active = ($edit_blog);
+$is_form_active = ($edit_blog !== null);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -282,16 +340,12 @@ $is_form_active = ($edit_blog);
 
         <?php if ($filter_author_id) { ?>
             <div class="mb-6">
-                <button onclick="toggleAuthorManagementModal()"
-                    class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 
-                       bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition border border-blue-100 shadow-sm"
-                    aria-label="Open Author Management Hub">
-                    <svg xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24"
-                        stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                <a href="dashboard.php" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition border border-blue-100 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                     </svg>
-                </button>
+                    <span>Back to All Posts</span>
+                </a>
             </div>
         <?php } ?>
 
@@ -300,13 +354,10 @@ $is_form_active = ($edit_blog);
                 <h2 class="text-lg font-bold text-gray-900">
                     <?= $edit_blog ? 'Update This Post' : 'Create a Brand New Blog Story' ?>
                 </h2>
-
-                <div class="flex items-center gap-3">
-                    <button type="button" onclick="toggleCreatePostForm()" class="text-gray-400 hover:text-gray-600 text-2xl font-medium leading-none">&times;</button>
-                </div>
+                <button type="button" onclick="toggleCreatePostForm()" class="text-gray-400 hover:text-gray-600 text-2xl font-medium leading-none">&times;</button>
             </div>
 
-            <form method="POST" action="dashboard.php" enctype="multipart/form-data" class="space-y-4">
+            <form id="blogPostForm" method="POST" action="dashboard.php" enctype="multipart/form-data" class="space-y-4">
                 <input type="hidden" name="action" value="<?= $edit_blog ? 'update_blog' : 'create_blog' ?>">
                 <?php if ($edit_blog): ?>
                     <input type="hidden" name="blog_id" value="<?= $edit_blog['blog_id'] ?>">
@@ -327,9 +378,8 @@ $is_form_active = ($edit_blog);
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Assign Author *</label>
-                        <select name="author_id" id="authorSelectField" required onchange="checkInlineAuthorSelection(this)" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium">
+                        <select name="author_id" id="authorSelectField" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium">
                             <option value="">-- Choose Author --</option>
-                            <option value="NEW_MODAL_TRIGGER" class="text-blue-600 font-bold bg-blue-50">Create New Author</option>
                             <?php foreach ($authors as $auth) { ?>
                                 <option value="<?= $auth['author_id'] ?>" <?= ($edit_blog && $edit_blog['author_id'] == $auth['author_id']) ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($auth['username']) ?>
@@ -338,9 +388,22 @@ $is_form_active = ($edit_blog);
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Upload Cover Image File</label>
-                        <input type="file" name="cover_image" accept="image/*" class="w-full border border-gray-300 rounded-xl p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Primary Cover Image</label>
+                        <input type="file" name="cover_image" accept="image/*" class="w-full border border-gray-300 rounded-xl p-2 text-sm bg-white">
                     </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 border border-dashed rounded-xl border-gray-300">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">Additional Gallery Images (Upload Multiple - Max 7)</label>
+                    <p class="text-[11px] text-gray-400 mb-2">Select up to 7 layout files or context illustrations as needed for this article deck.</p>
+                    <input type="file" id="galleryImagesInput" name="additional_images[]" accept="image/*" multiple class="w-full text-sm bg-white border rounded-lg p-2 file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+
+                    <?php if ($edit_blog && $existing_gallery_count > 0): ?>
+                        <div class="mt-3 flex items-center gap-2">
+                            <input type="checkbox" name="clear_existing_gallery" id="clear_existing_gallery" value="1" class="rounded text-blue-600">
+                            <label for="clear_existing_gallery" class="text-xs font-medium text-red-600 cursor-pointer">Clear existing gallery items (<?= $existing_gallery_count ?> found) and replace with new selections</label>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <div>
@@ -375,9 +438,7 @@ $is_form_active = ($edit_blog);
                     while ($blog = $blogs_res->fetch_assoc()) {
                         $imgUrl = (strpos($blog['cover_image'], 'http') === 0) ? $blog['cover_image'] : '../' . $blog['cover_image'];
                 ?>
-                        <div onclick="openBlogReadModal(<?= $blog['blog_id'] ?>)"
-                            class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between shadow-sm hover:border-gray-300 transition cursor-pointer group/row">
-
+                        <div onclick="openBlogReadModal(<?= $blog['blog_id'] ?>)" class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between shadow-sm hover:border-gray-300 transition cursor-pointer group/row">
                             <div class="flex items-center gap-3 min-w-0 flex-1">
                                 <img src="<?= htmlspecialchars($imgUrl) ?>" class="w-12 h-12 rounded-lg object-cover bg-gray-100 flex-shrink-0 border">
                                 <div class="min-w-0 flex-1">
@@ -386,6 +447,7 @@ $is_form_active = ($edit_blog);
                                         <span>By <strong class="text-blue-600 font-medium"><?= htmlspecialchars($blog['username']) ?></strong></span>
                                         <span>•</span>
                                         <span><?= date('M d, Y', strtotime($blog['publish_date'])) ?></span>
+                                        <span>•</span>
                                         <span class="bg-blue-50 border border-blue-200 text-blue-700 px-1.5 py-0.2 rounded text-[10px] font-bold">
                                             <?= number_format($blog['views']) ?> Views
                                         </span>
@@ -394,15 +456,13 @@ $is_form_active = ($edit_blog);
                             </div>
 
                             <div class="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-0 pt-2 sm:pt-0 shrink-0">
-                                <button onclick="event.stopPropagation(); window.location.href='dashboard.php?edit_id=<?= $blog['blog_id'] ?><?= $filter_author_id ? '&author_view_id=' . $filter_author_id : '' ?>'"
-                                    class="text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium">
+                                <button onclick="event.stopPropagation(); window.location.href='dashboard.php?edit_id=<?= $blog['blog_id'] ?><?= $filter_author_id ? '&author_view_id=' . $filter_author_id : '' ?>'" class="text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium">
                                     Edit
                                 </button>
                                 <form method="POST" action="dashboard.php" onsubmit="event.stopPropagation(); return confirm('Are you sure you want to permanently delete this blog story?');" class="inline">
                                     <input type="hidden" name="action" value="delete_blog">
                                     <input type="hidden" name="blog_id" value="<?= $blog['blog_id'] ?>">
-                                    <button type="submit" onclick="event.stopPropagation();"
-                                        class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 border border-red-100 rounded-lg transition font-medium">
+                                    <button type="submit" onclick="event.stopPropagation();" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 border border-red-100 rounded-lg transition font-medium">
                                         Delete
                                     </button>
                                 </form>
@@ -417,56 +477,40 @@ $is_form_active = ($edit_blog);
     </main>
 
     <div id="blogReadModal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50 transition-all duration-300">
-        <div class="bg-white rounded-2xl w-full max-w-2xl p-5 sm:p-6 shadow-xl border border-gray-100 transform scale-95 transition-transform duration-300 max-h-[85vh] flex flex-col" id="blogReadCard">
+        <div class="bg-white rounded-2xl w-full max-w-3xl p-5 sm:p-6 shadow-xl border border-gray-100 max-h-[85vh] flex flex-col transition-all transform duration-300 scale-95" id="blogReadCard">
             <div class="flex justify-between items-center mb-4 border-b pb-2 shrink-0">
                 <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider">Article Quick Preview</h3>
-                <button type="button" onclick="closeBlogReadModal()" class="text-gray-400 hover:text-gray-600 text-xl font-medium">&times;</button>
+                <button type="button" onclick="closeBlogReadModal()" class="text-gray-400 hover:text-gray-600 text-xl font-medium leading-none">&times;</button>
             </div>
-
-            <div class="overflow-y-auto space-y-4 pr-1 flex-1" id="blogReadContent">
-            </div>
+            <div class="overflow-y-auto space-y-4 pr-1 flex-1 text-left" id="blogReadContent"></div>
         </div>
     </div>
 
     <div id="authorManagementModal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50 transition-all duration-300">
-        <div class="bg-white rounded-2xl w-full max-w-2xl p-5 sm:p-6 shadow-xl border border-gray-100 transform scale-95 transition-transform duration-300" id="authorModalCard">
-
+        <div class="bg-white rounded-2xl w-full max-w-2xl p-5 sm:p-6 shadow-xl border border-gray-100 transform scale-95 transition-all duration-300" id="authorModalCard">
             <div class="flex justify-between items-center mb-4 border-b pb-2">
                 <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">Author Management Hub</h3>
-
-                <button type="button"
-                    onclick="<?= $filter_author_id ? "window.location.href='dashboard.php'" : "toggleAuthorManagementModal()" ?>"
-                    class="text-gray-400 hover:text-gray-600 text-xl font-medium">&times;</button>
+                <button type="button" onclick="toggleAuthorManagementModal()" class="text-gray-400 hover:text-gray-600 text-xl font-medium leading-none">&times;</button>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                     <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Create New Author</h4>
                     <form id="ajaxAuthorForm" onsubmit="submitAuthorFormAsync(event)">
-                        <input type="hidden" id="modalOriginSource" value="navbar_button">
-
                         <div class="mb-4">
                             <label class="block text-xs font-semibold text-gray-600 mb-1">Author Name *</label>
-                            <input type="text" id="modalAuthorNameInput" required placeholder="e.g., Rachel Green"
-                                class="w-full border border-gray-300 rounded-xl p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none text-gray-800 bg-white">
+                            <input type="text" id="modalAuthorNameInput" required placeholder="e.g., Rachel Green" class="w-full border border-gray-300 rounded-xl p-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-xl transition shadow-sm">
-                            Save Profile
-                        </button>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-xl transition shadow-sm">Save Profile</button>
                     </form>
                 </div>
-
                 <div>
                     <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Available Authors</h4>
-                    <p class="text-[11px] text-gray-400 mb-3">Click any name to display their posts summary stack on the dashboard.</p>
-
                     <div id="modalAuthorsListView" class="divide-y divide-gray-100 max-h-[220px] overflow-y-auto border border-gray-200 rounded-xl bg-white p-2">
                         <?php foreach ($authors as $auth) { ?>
-                            <div class="flex items-center justify-between py-2.5 px-3 hover:bg-gray-50 rounded-lg group transition" id="author_row_<?= $auth['author_id'] ?>">
+                            <div class="flex items-center justify-between py-2.5 px-3 hover:bg-gray-50 rounded-lg group transition">
                                 <a href="dashboard.php?author_view_id=<?= $auth['author_id'] ?>" class="text-xs font-semibold text-gray-700 hover:text-blue-600 transition truncate pr-2">
                                     <?= htmlspecialchars($auth['username']) ?>
                                 </a>
-
                                 <form method="POST" action="dashboard.php" onsubmit="return confirm('Remove author profile completely?');">
                                     <input type="hidden" name="action" value="delete_author">
                                     <input type="hidden" name="author_id" value="<?= $auth['author_id'] ?>">
@@ -477,11 +521,8 @@ $is_form_active = ($edit_blog);
                     </div>
                 </div>
             </div>
-
             <div class="flex justify-end pt-4 mt-4 border-t">
-                <button type="button"
-                    onclick="<?= $filter_author_id ? "window.location.href='dashboard.php'" : "toggleAuthorManagementModal()" ?>"
-                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-xl transition">Close</button>
+                <button type="button" onclick="toggleAuthorManagementModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-xl transition">Close</button>
             </div>
         </div>
     </div>
@@ -490,9 +531,7 @@ $is_form_active = ($edit_blog);
 </body>
 
 </html>
-
 <!-- 
 multiple image
- popular(on view)
  session(admin authentication)
  dynamic -->

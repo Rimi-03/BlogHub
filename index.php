@@ -1,5 +1,8 @@
 <?php
 include("db.php");
+
+// Safe fallback page variable initialization
+$page = isset($_GET['page']) ? $_GET['page'] : 'home';
 ?>
 <!doctype html>
 <html lang="en">
@@ -13,7 +16,6 @@ include("db.php");
 
 <body class="bg-gray-100">
 
-  <!-- nav bar -->
   <nav class="bg-white shadow">
     <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
 
@@ -44,16 +46,12 @@ include("db.php");
           </div>
         </div>
 
-        <!-- <a href="admin/create_post.php" class="text-blue-600 font-medium">
-          Create Post
-        </a> -->
       </div>
 
     </div>
   </nav>
 
   <?php if ($page == 'home') { ?>
-    <!-- Hero section -->
     <section class="bg-[url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyPzfJ5ub8Yrp36q4Py4WIqiZ6x_Q4ftcRfHmlOAsTVj-BB6AsFTwHlUA&s=10')] bg-cover bg-center bg-gray-100 py-10 md:py-16 px-4 md:px-8 rounded-b shadow-md">
       <div class="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-stretch gap-8 md:gap-12">
 
@@ -76,7 +74,6 @@ include("db.php");
       </div>
     </section>
 
-    <!-- Search bar -->
     <div class="px-4 py-6">
       <form action="index.php" method="GET" class="max-w-3xl mx-auto">
         <input type="hidden" name="page" value="search" />
@@ -133,8 +130,11 @@ include("db.php");
         ?>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <?php if ($result->num_rows > 0) { ?>
-            <?php while ($blog = $result->fetch_assoc()) { ?>
-              <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover" />
+            <?php while ($blog = $result->fetch_assoc()) {
+              $imgUrl = $blog['cover_image'];
+            ?>
+              <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group">
+                <img src="<?= htmlspecialchars($imgUrl); ?>" class="w-full h-48 object-cover" />
                 <div class="p-4 flex-1 flex flex-col justify-between">
                   <div>
                     <h3 class="font-bold text-gray-800 text-lg mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
@@ -156,7 +156,6 @@ include("db.php");
         </div>
       </div>
     </div>
-    </div>
 
     <div class="px-4 py-8 md:p-10 bg-gray-50">
       <div class="container mx-auto">
@@ -175,8 +174,11 @@ include("db.php");
         ");
         ?>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <?php while ($blog = $result->fetch_assoc()) { ?>
-            <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
+          <?php while ($blog = $result->fetch_assoc()) {
+            $imgUrl = $blog['cover_image'];
+          ?>
+            <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group">
+              <img src="<?= htmlspecialchars($imgUrl); ?>" class="w-full h-48 object-cover">
               <div class="p-4 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 class="font-bold text-lg text-gray-800 mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
@@ -186,7 +188,8 @@ include("db.php");
                   <div class="flex justify-between items-center mb-2">
                     <p class="text-xs text-gray-400"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
                     <span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-medium"><?= number_format($blog['views']) ?> views</span>
-                  </div> <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
+                  </div>
+                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
                 </div>
               </div>
             </div>
@@ -233,8 +236,11 @@ include("db.php");
         if ($search_result->num_rows > 0) {
         ?>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <?php while ($blog = $search_result->fetch_assoc()) { ?>
-              <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
+            <?php while ($blog = $search_result->fetch_assoc()) {
+              $imgUrl = $blog['cover_image'];
+            ?>
+              <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group">
+                <img src="<?= htmlspecialchars($imgUrl); ?>" class="w-full h-48 object-cover">
                 <div class="p-4 flex-1 flex flex-col justify-between">
                   <div>
                     <h3 class="font-bold text-lg text-gray-800 mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
@@ -286,8 +292,11 @@ include("db.php");
         ?>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <?php if ($result->num_rows > 0) { ?>
-            <?php while ($blog = $result->fetch_assoc()) { ?>
-              <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
+            <?php while ($blog = $result->fetch_assoc()) {
+              $imgUrl = $blog['cover_image'];
+            ?>
+              <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group">
+                <img src="<?= htmlspecialchars($imgUrl); ?>" class="w-full h-48 object-cover">
                 <div class="p-4 flex-1 flex flex-col justify-between">
                   <div>
                     <h3 class="font-bold text-lg text-gray-800 mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
@@ -297,7 +306,8 @@ include("db.php");
                     <div class="flex justify-between items-center mb-2">
                       <p class="text-xs text-gray-400"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
                       <span class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-bold border border-blue-100"><?= number_format($blog['views']) ?> views</span>
-                    </div> <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
+                    </div>
+                    <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
                   </div>
                 </div>
               </div>
@@ -307,7 +317,6 @@ include("db.php");
           <?php } ?>
         </div>
       </div>
-    </div>
     </div>
 
   <?php } elseif ($page == 'all') { ?>
@@ -325,8 +334,11 @@ include("db.php");
         ");
         ?>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <?php while ($blog = $result->fetch_assoc()) { ?>
-            <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group"> <img src="<?= htmlspecialchars($blog['cover_image']); ?>" class="w-full h-48 object-cover">
+          <?php while ($blog = $result->fetch_assoc()) {
+            $imgUrl = $blog['cover_image'];
+          ?>
+            <div onclick="window.location.href='index.php?page=single&id=<?= $blog['blog_id']; ?>'" class="bg-white rounded-lg shadow overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-xl transition duration-200 group">
+              <img src="<?= htmlspecialchars($imgUrl); ?>" class="w-full h-48 object-cover">
               <div class="p-4 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 class="font-bold text-lg text-gray-800 mb-1"><?= htmlspecialchars($blog['title']); ?></h3>
@@ -336,7 +348,8 @@ include("db.php");
                   <div class="flex justify-between items-center mb-2">
                     <p class="text-xs text-gray-400"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
                     <span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-medium"><?= number_format($blog['views']) ?> views</span>
-                  </div> <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
+                  </div>
+                  <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
                 </div>
               </div>
             </div>
@@ -351,7 +364,6 @@ include("db.php");
     $blog_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
     if ($blog_id > 0) {
-      // Increment the views column by 1 for this specific blog post
       $conn->query("UPDATE blogs SET views = views + 1 WHERE blog_id = $blog_id");
     }
 
@@ -367,6 +379,19 @@ include("db.php");
     $stmt->close();
 
     if ($blog_data) {
+      // Fetch structural extra attachments registry arrays
+      $gallery_result = $conn->query("SELECT image_path FROM blog_images WHERE blog_id = $blog_id");
+
+      // Seed JavaScript media engine list safely using PHP runtime array injections
+      $mediaDeck = [];
+      if (!empty($blog_data['cover_image'])) {
+        $mediaDeck[] = $blog_data['cover_image'];
+      }
+      if ($gallery_result) {
+        while ($photo = $gallery_result->fetch_assoc()) {
+          $mediaDeck[] = $photo['image_path'];
+        }
+      }
     ?>
       <article class="py-6 md:py-12 px-4 md:px-6 max-w-4xl mx-auto bg-white my-8 rounded-xl shadow-sm">
         <div class="relative h-10 flex items-center mb-4">
@@ -374,12 +399,36 @@ include("db.php");
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
             </svg>
+          </a>
         </div>
 
-        </a>
-        <?php if (!empty($blog_data['cover_image'])): ?>
-          <img src="<?= htmlspecialchars($blog_data['cover_image']); ?>" alt="Cover Banner" class="w-full  md:h-[450px] object-cover rounded-xl shadow-sm mb-8" />
-        <?php endif; ?>
+        <div class="relative w-full h-[260px] sm:h-[450px] rounded-xl overflow-hidden border bg-gray-950 mb-8 group">
+          <img id="singleViewCarouselDisplay" src="<?= htmlspecialchars($mediaDeck[0] ?? 'uploads/default.jpg'); ?>" class="w-full h-full object-contain transition-all duration-300">
+
+          <?php if (count($mediaDeck) > 1): ?>
+            <button onclick="advanceSingleViewCarouselNext()" class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-2xl transition select-none z-10 focus:outline-none" title="Next Image">
+              &gt;
+            </button>
+            <div class="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-3 py-1 rounded-md font-mono tracking-wider select-none" id="singleViewCarouselCounter">
+              1 / <?= count($mediaDeck); ?>
+            </div>
+          <?php endif; ?>
+        </div>
+
+        <script>
+          const singleCarouselDeck = <?= json_encode($mediaDeck); ?>;
+          let singleCarouselIndex = 0;
+
+          function advanceSingleViewCarouselNext() {
+            if (singleCarouselDeck.length <= 1) return;
+
+            // Infinite Index Loop Wrapper
+            singleCarouselIndex = (singleCarouselIndex + 1) % singleCarouselDeck.length;
+
+            document.getElementById("singleViewCarouselDisplay").src = singleCarouselDeck[singleCarouselIndex];
+            document.getElementById("singleViewCarouselCounter").textContent = `${singleCarouselIndex + 1} / ${singleCarouselDeck.length}`;
+          }
+        </script>
 
         <h1 class="text-2xl md:text-5xl font-black text-gray-900 leading-tight mb-2">
           <?= htmlspecialchars($blog_data['title']); ?>
@@ -406,9 +455,10 @@ include("db.php");
           </p>
         </div>
 
-        <div class="text-gray-800 text-base  md:text-lg leading-relaxed whitespace-pre-line font-serif">
+        <div class="text-gray-800 text-base md:text-lg leading-relaxed whitespace-pre-line font-serif mb-10">
           <?= htmlspecialchars($blog_data['content']); ?>
         </div>
+
       </article>
     <?php } else { ?>
       <div class="text-center py-20 bg-white m-10 rounded shadow max-w-md mx-auto">
@@ -417,7 +467,6 @@ include("db.php");
         <a href="index.php?page=home" class="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition">Return to Home</a>
       </div>
     <?php } ?>
-
   <?php } ?>
 
   <footer class="bg-white mt-10 border-t">
