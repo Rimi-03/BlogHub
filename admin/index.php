@@ -4,6 +4,34 @@ include("../db.php");
 
 $error = "";
 
+if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+    // Clear session global state values
+    $_SESSION = array();
+
+    // Annihilate the session identifier cookie safely
+    if (ini_get("session_use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params["path"],
+            $params["domain"],
+            $params["secure"],
+            $params["httponly"]
+        );
+    }
+    session_destroy();
+
+    // Set a feedback alert notice for the redirected user
+    $success_message = "You have been logged out successfully.";
+}
+
+if (isset($_SESSION["admin_id"]) && (!isset($_GET['action']) || $_GET['action'] !== 'logout')) {
+    header("Location: dashboard.php");
+    exit();
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $username = trim($_POST["username"]);
@@ -46,7 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login</title>
+    <title>Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -55,7 +83,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-md transition-all duration-300">
 
         <h2 class="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6">
-            Admin Login
+            Login as Admin
         </h2>
 
         <?php if ($error) { ?>
