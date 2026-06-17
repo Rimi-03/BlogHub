@@ -232,8 +232,20 @@ include("db.php");
                     <p class="text-xs text-gray-500 font-medium">By <?= htmlspecialchars($blog['username']); ?></p>
                   </div>
                   <div class="mt-4">
-                    <p class="text-xs text-gray-400 mb-2"><?= date('M d, Y', strtotime($blog['publish_date'])); ?></p>
-                    <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>" class="text-blue-600 hover:underline font-semibold block">Read More</a>
+                    <div class="flex justify-between items-center mb-2">
+                      <p class="text-xs text-gray-400">
+                        <?= date('M d, Y', strtotime($blog['publish_date'])); ?>
+                      </p>
+
+                      <span class="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-medium">
+                        <?= number_format($blog['views']) ?> views
+                      </span>
+                    </div>
+
+                    <a href="index.php?page=single&id=<?= $blog['blog_id']; ?>"
+                      class="text-blue-600 hover:underline font-semibold block">
+                      Read More
+                    </a>
                   </div>
                 </div>
               </div>
