@@ -384,11 +384,13 @@ $is_form_active = ($edit_blog);
                     while ($blog = $blogs_res->fetch_assoc()) {
                         $imgUrl = (strpos($blog['cover_image'], 'http') === 0) ? $blog['cover_image'] : '../' . $blog['cover_image'];
                 ?>
-                        <div class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between shadow-sm hover:border-gray-300 transition">
+                        <div onclick="openBlogReadModal(<?= $blog['blog_id'] ?>)"
+                            class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between shadow-sm hover:border-gray-300 transition cursor-pointer group/row">
+
                             <div class="flex items-center gap-3 min-w-0 flex-1">
                                 <img src="<?= htmlspecialchars($imgUrl) ?>" class="w-12 h-12 rounded-lg object-cover bg-gray-100 flex-shrink-0 border">
                                 <div class="min-w-0 flex-1">
-                                    <h4 class="font-bold text-gray-900 text-sm line-clamp-1 leading-snug"><?= htmlspecialchars($blog['title']) ?></h4>
+                                    <h4 class="font-bold text-gray-900 text-sm line-clamp-1 leading-snug group-hover/row:text-blue-600 transition"><?= htmlspecialchars($blog['title']) ?></h4>
                                     <div class="flex items-center gap-2 text-xs text-gray-500 mt-1 flex-wrap">
                                         <span>By <strong class="text-blue-600 font-medium"><?= htmlspecialchars($blog['username']) ?></strong></span>
                                         <span>•</span>
@@ -401,15 +403,20 @@ $is_form_active = ($edit_blog);
                             </div>
 
                             <div class="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-0 pt-2 sm:pt-0 shrink-0">
-                                <button onclick="openBlogReadModal(<?= $blog['blog_id'] ?>)" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 border border-blue-100 rounded-lg transition font-semibold">
+                                <!-- <button onclick="openBlogReadModal(<?= $blog['blog_id'] ?>)" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1.5 border border-blue-100 rounded-lg transition font-semibold">
                                     Read
+                                </button> -->
+                                <button onclick="event.stopPropagation(); window.location.href='dashboard.php?edit_id=<?= $blog['blog_id'] ?><?= $filter_author_id ? '&author_view_id=' . $filter_author_id : '' ?>'"
+                                    class="text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium">
+                                    Edit
                                 </button>
-                                <button onclick="window.location.href='dashboard.php?edit_id=<?= $blog['blog_id'] ?><?= $filter_author_id ? '&author_view_id=' . $filter_author_id : '' ?>'" class="text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium">Edit</button>
-
-                                <form method="POST" action="dashboard.php" onsubmit="return confirm('Are you sure you want to permanently delete this blog story?');" class="inline">
+                                <form method="POST" action="dashboard.php" onsubmit="event.stopPropagation(); return confirm('Are you sure you want to permanently delete this blog story?');" class="inline">
                                     <input type="hidden" name="action" value="delete_blog">
                                     <input type="hidden" name="blog_id" value="<?= $blog['blog_id'] ?>">
-                                    <button type="submit" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 border border-red-100 rounded-lg transition font-medium">Delete</button>
+                                    <button type="submit" onclick="event.stopPropagation();"
+                                        class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 border border-red-100 rounded-lg transition font-medium">
+                                        Delete
+                                    </button>
                                 </form>
                             </div>
                         </div>
@@ -431,9 +438,9 @@ $is_form_active = ($edit_blog);
             <div class="overflow-y-auto space-y-4 pr-1 flex-1" id="blogReadContent">
             </div>
 
-            <div class="flex justify-end pt-3 mt-3 border-t shrink-0">
+            <!-- <div class="flex justify-end pt-3 mt-3 border-t shrink-0">
                 <button type="button" onclick="closeBlogReadModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-xl transition">Done</button>
-            </div>
+            </div> -->
         </div>
     </div>
 
@@ -499,3 +506,10 @@ $is_form_active = ($edit_blog);
 </body>
 
 </html>
+
+<!-- 
+multiple image
+ read
+ popular(on view)
+ session(authentication)
+ dynamic -->
