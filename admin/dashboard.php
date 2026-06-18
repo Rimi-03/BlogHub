@@ -1,11 +1,16 @@
 <?php
 session_start();
-include("../db.php");
+require_once('../db.php');
+require_once('session_manager.php');
 
-if (!isset($_SESSION["admin_id"])) {
-    header("Location: index.php");
+// Force logout if token is missing or expired
+if (!isset($_SESSION["admin_id"]) || isTokenExpired()) {
+    session_unset();
+    session_destroy();
+    header("Location: index.php?error=session_expired");
     exit();
 }
+
 
 // --- AJAX ENDPOINT: FETCH FULL BLOG CONTENT + GALLERY ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] === 'ajax_get_blog_body') {
@@ -321,6 +326,7 @@ $is_form_active = ($edit_blog !== null);
                     <span class="text-[11px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium whitespace-nowrap">
                         Admin Mode: <strong class="text-blue-600"><?= htmlspecialchars($_SESSION["admin_name"] ?? 'Active') ?></strong>
                     </span>
+                    <span id="sessionTimer" class="text-[11px] text-red-600 font-bold bg-red-50 px-2 py-1 rounded-md">--:--</span>
                 </div>
             </div>
 
@@ -529,6 +535,12 @@ $is_form_active = ($edit_blog !== null);
             </div>
         </div>
     </div>
+
+    <script>
+        // For SESSION DURATION 
+        const SESSION_DURATION = <?php echo SESSION_DURATION; ?>;
+        const tokenGeneratedAt = <?php echo $_SESSION['token_generated_at'] ?? time(); ?>;
+    </script>
 
     <script src="dashboard.js"></script>
 </body>

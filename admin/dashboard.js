@@ -23,8 +23,42 @@ document.addEventListener("DOMContentLoaded", function () {
   initFormValidation();
 });
 
-// Carousel State Controllers
+// --- Session Expiry Timer Logic ---
+const timerElement = document.getElementById("sessionTimer");
 
+// Calculate how many seconds have passed since the token was generated
+const now = Math.floor(Date.now() / 1000);
+const elapsed = now - tokenGeneratedAt;
+
+// Determine remaining time
+let timeLeft = Math.max(0, SESSION_DURATION - elapsed);
+
+const countdownInterval = setInterval(() => {
+  if (timeLeft <= 0) {
+    clearInterval(countdownInterval);
+    alert("Your session has expired. You will be redirected to login.");
+    window.location.href = "index.php?error=session_expired";
+  } else {
+    timeLeft--;
+
+    // Math to get HH:MM:SS
+    const hours = Math.floor(timeLeft / 3600);
+    const minutes = Math.floor((timeLeft % 3600) / 60);
+    const seconds = timeLeft % 60;
+
+    if (timerElement) {
+      // Format with padding to ensure 2 digits (e.g., 01:05:09)
+      const hh = hours.toString().padStart(2, "0");
+      const mm = minutes.toString().padStart(2, "0");
+      const ss = seconds.toString().padStart(2, "0");
+
+      // Show hours only if they exist, or always show HH:MM:SS
+      timerElement.textContent = `${hh}:${mm}:${ss}`;
+    }
+  }
+}, 1000);
+
+// Carousel State Controllers
 let activeCarouselImages = [];
 
 let activeCarouselIndex = 0;

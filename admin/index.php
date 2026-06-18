@@ -1,7 +1,7 @@
 <?php
 session_start();
 include("../db.php");
-
+require_once('session_manager.php');
 $error = "";
 
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
@@ -56,6 +56,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $_SESSION["admin_id"] = $admin["admin_id"];
             $_SESSION["admin_name"] = $admin["username"];
+
+            generateAdminToken();
 
             $stmt->close(); // Close here right before redirecting
             header("Location: dashboard.php");
