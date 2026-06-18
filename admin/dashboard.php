@@ -457,7 +457,7 @@ $is_form_active = ($edit_blog !== null);
                             </div>
 
                             <div class="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-0 pt-2 sm:pt-0 shrink-0">
-                                <button onclick="event.stopPropagation(); window.location.href='dashboard.php?edit_id=<?= $blog['blog_id'] ?><?= $filter_author_id ? '&author_view_id=' . $filter_author_id : '' ?>'" class="text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium">
+                                <button onclick="event.stopPropagation(); window.location.href='dashboard.php'?edit_id=<?= $blog['blog_id'] ?><?= $filter_author_id ? '&author_view_id=' . $filter_author_id : '' ?>'" class="text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium">
                                     Edit
                                 </button>
                                 <form method="POST" action="dashboard.php" onsubmit="event.stopPropagation(); return confirm('Are you sure you want to permanently delete this blog story?');" class="inline">
@@ -510,13 +510,15 @@ $is_form_active = ($edit_blog !== null);
                         <?php foreach ($authors as $auth) { ?>
                             <div class="flex items-center justify-between py-2.5 px-3 hover:bg-gray-50 rounded-lg group transition">
                                 <a href="dashboard.php?author_view_id=<?= $auth['author_id'] ?>&open_author_hub=1" class="text-xs font-semibold text-gray-700 hover:text-blue-600 transition truncate pr-2">
-                                    <?= htmlspecialchars($auth['username']) ?>
-                                </a>
-                                <form method="POST" action="dashboard.php" onsubmit="return confirm('Remove author profile completely?');">
-                                    <input type="hidden" name="action" value="delete_author">
-                                    <input type="hidden" name="author_id" value="<?= $auth['author_id'] ?>">
-                                    <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 font-medium opacity-60 group-hover:opacity-100 transition shrink-0">Remove</button>
-                                </form>
+                                    <a href="dashboard.php?author_view_id=<?= $auth['author_id'] ?>"
+                                        class="text-xs font-semibold text-gray-700 hover:text-blue-600 transition truncate pr-2">
+                                        <?= htmlspecialchars($auth['username']) ?>
+                                    </a>
+                                    <form method="POST" action="dashboard.php" onsubmit="return confirm('Remove author profile completely?');">
+                                        <input type="hidden" name="action" value="delete_author">
+                                        <input type="hidden" name="author_id" value="<?= $auth['author_id'] ?>">
+                                        <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 font-medium opacity-60 group-hover:opacity-100 transition shrink-0">Remove</button>
+                                    </form>
                             </div>
                         <?php } ?>
                     </div>
@@ -527,7 +529,6 @@ $is_form_active = ($edit_blog !== null);
             </div>
         </div>
     </div>
-
 
     <script src="dashboard.js"></script>
 </body>

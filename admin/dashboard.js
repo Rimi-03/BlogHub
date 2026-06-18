@@ -1,8 +1,25 @@
 document.addEventListener("DOMContentLoaded", function () {
+  const urlParams = new URLSearchParams(window.location.search);
+
+  // Only auto-open if 'open_author_hub' is there
+  // AND we are NOT currently filtering by an author (author_view_id is absent)
+  if (urlParams.has("open_author_hub") && !urlParams.has("author_view_id")) {
+    const modal = document.getElementById("authorManagementModal");
+    if (modal && modal.classList.contains("hidden")) {
+      toggleAuthorManagementModal();
+    }
+  }
+
+  // Clean up URL on load so refresh doesn't trigger the modal again
+  if (urlParams.has("open_author_hub")) {
+    const cleanUrl =
+      window.location.pathname +
+      window.location.search.replace(/[?&]open_author_hub=1/, "");
+    history.replaceState(null, "", cleanUrl || window.location.pathname);
+  }
+
   attachToastTimers();
-
   initModalEventListeners();
-
   initFormValidation();
 });
 
@@ -48,23 +65,42 @@ function spawnFloatingToast(text, type = "success") {
 
 function toggleCreatePostForm() {
   const section = document.getElementById("createPostSection");
-
   const postFeed = document.getElementById("recentPostsSection");
 
-  if (!section || !postFeed) return;
+  // If we are in "Edit" mode, we must refresh to clear the form
+  if (window.location.search.includes("edit_id")) {
+    window.location.href = "dashboard.php";
+    return;
+  }
 
-  if (section.classList.contains("hidden")) {
-    section.classList.remove("hidden");
+  // Otherwise, just toggle the view
+  section.classList.toggle("hidden");
+  postFeed.classList.toggle("hidden");
+}
 
-    postFeed.classList.add("hidden");
-  } else {
-    section.classList.add("hidden");
+function toggleAuthorManagementModal() {
+  const modal = document.getElementById("authorManagementModal");
+  const card = document.getElementById("authorModalCard");
+  if (!modal) return;
 
-    postFeed.classList.remove("hidden");
+  if (modal.classList.contains("hidden")) {
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    if (card) card.classList.remove("scale-95");
 
-    if (window.location.search.includes("edit_id")) {
-      window.location.href = "dashboard.php";
+    // Only add to history if it's not already there to prevent extra entries
+    if (!window.location.search.includes("open_author_hub=1")) {
+      history.pushState(null, "", "dashboard.php?open_author_hub=1");
     }
+  } else {
+    if (card) card.classList.add("scale-95");
+    setTimeout(() => {
+      modal.classList.remove("flex");
+      modal.classList.add("hidden");
+
+      // Crucial: Use replaceState to remove the flag cleanly
+      history.replaceState(null, "", "dashboard.php");
+    }, 150);
   }
 }
 
@@ -227,30 +263,6 @@ function closeBlogReadModal() {
 
     modal.classList.add("hidden");
   }, 150);
-}
-
-function toggleAuthorManagementModal() {
-  const modal = document.getElementById("authorManagementModal");
-
-  const card = document.getElementById("authorModalCard");
-
-  if (!modal) return;
-
-  if (modal.classList.contains("hidden")) {
-    modal.classList.remove("hidden");
-
-    modal.classList.add("flex");
-
-    if (card) card.classList.remove("scale-95");
-  } else {
-    if (card) card.classList.add("scale-95");
-
-    setTimeout(() => {
-      modal.classList.remove("flex");
-
-      modal.classList.add("hidden");
-    }, 150);
-  }
 }
 
 function submitAuthorFormAsync(event) {
