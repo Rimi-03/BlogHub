@@ -91,6 +91,52 @@ unset($_SESSION['flash_error']);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
 
+    // --- ACTION: UPDATE SITE CONTENT ---
+    if ($_POST['action'] === 'update_content') {
+
+        $key = $_POST['content_key'];
+        $value = $_POST['content_value'];
+
+        $stmt = $conn->prepare("
+        INSERT INTO site_content (content_key, content_value)
+        VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE content_value = VALUES(content_value)
+    ");
+
+        $stmt->bind_param("ss", $key, $value);
+
+        if ($stmt->execute()) {
+            $_SESSION['flash_message'] = "Content updated successfully!";
+        } else {
+            $_SESSION['flash_error'] = "Failed to update content.";
+        }
+
+        $stmt->close();
+
+        header("Location: dashboard.php?open_content_hub=1");
+        exit();
+    }
+
+    // --- ACTION: DELETE SITE CONTENT ---
+    if ($_POST['action'] === 'delete_content') {
+
+        $key = $_POST['content_key'];
+
+        $stmt = $conn->prepare("DELETE FROM site_content WHERE content_key = ?");
+        $stmt->bind_param("s", $key);
+
+        if ($stmt->execute()) {
+            $_SESSION['flash_message'] = "Content deleted successfully!";
+        } else {
+            $_SESSION['flash_error'] = "Failed to delete content.";
+        }
+
+        $stmt->close();
+
+        header("Location: dashboard.php?open_content_hub=1");
+        exit();
+    }
+
     $handle_gallery_uploads = function ($blog_id, $conn) {
         $upload_dir = '../uploads/';
         if (!is_dir($upload_dir)) {
@@ -331,6 +377,10 @@ $is_form_active = ($edit_blog !== null);
             </div>
 
             <div class="grid grid-cols-3 sm:flex items-center justify-center md:justify-end gap-2 w-full md:w-auto border-t md:border-0 pt-2 md:pt-0">
+                <button onclick="toggleContentHubModal()"
+                    class="text-[11px] sm:text-sm bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition shadow-sm">
+                    Site Settings
+                </button>
                 <button onclick="toggleCreatePostForm()" class="text-[11px] sm:text-sm bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition shadow-sm truncate text-center">
                     <?= $is_form_active ? 'Show Posts' : 'Create Post' ?>
                 </button>
@@ -534,6 +584,66 @@ $is_form_active = ($edit_blog !== null);
                 <button type="button" onclick="toggleAuthorManagementModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-xl transition">Close</button>
             </div>
         </div>
+    </div>
+
+    <<div id="contentHubModal"
+        class="fixed inset-0 bg-black/40 hidden items-center justify-center p-4 z-50">
+
+        <div class="bg-white w-full max-w-3xl rounded-2xl p-6 shadow-xl max-h-[80vh] overflow-y-auto">
+
+            <div class="flex justify-between border-b pb-3 mb-4">
+                <h2 class="font-bold text-lg">Site Settings</h2>
+                <button onclick="toggleContentHubModal()" class="text-xl">&times;</button>
+            </div>
+
+            <?php
+            $contents = $conn->query("SELECT * FROM site_content ORDER BY content_key ASC");
+            while ($c = $contents->fetch_assoc()) {
+            ?>
+
+                <div class="border rounded-lg p-3 mb-4 bg-gray-50">
+
+                    <!-- UPDATE FORM -->
+                    <form method="POST" action="dashboard.php">
+                        <input type="hidden" name="action" value="update_content">
+                        <input type="hidden" name="content_key" value="<?= $c['content_key'] ?>">
+
+                        <label class="text-xs font-bold text-gray-600">
+                            <?= htmlspecialchars($c['content_key']) ?>
+                        </label>
+
+                        <textarea name="content_value"
+                            class="w-full border p-2 rounded mt-1 text-sm"
+                            rows="2"><?= htmlspecialchars($c['content_value']) ?></textarea>
+
+                        <div class="flex gap-2 mt-2">
+
+                            <!-- UPDATE BUTTON -->
+                            <button class="bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                Update
+                            </button>
+                    </form>
+
+                    <!-- DELETE FORM -->
+                    <form method="POST" action="dashboard.php"
+                        onsubmit="return confirm('Delete this content permanently?');">
+
+                        <input type="hidden" name="action" value="delete_content">
+                        <input type="hidden" name="content_key" value="<?= $c['content_key'] ?>">
+
+                        <button class="bg-red-600 text-white px-3 py-1 rounded text-xs">
+                            Delete
+                        </button>
+
+                    </form>
+
+                </div>
+
+        </div>
+
+    <?php } ?>
+
+    </div>
     </div>
 
     <script>

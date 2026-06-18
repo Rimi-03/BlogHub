@@ -57,17 +57,15 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'home';
 
         <div class="w-full md:w-1/2 bg-white/75 backdrop-blur-sm p-6 md:p-8 rounded-lg shadow-sm flex flex-col justify-center">
           <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4">
-            Share Your Ideas With The World
+            <?= htmlspecialchars(getContent('hero_title')) ?>
           </h1>
           <p class="text-gray-600 text-base md:text-lg">
-            A modern blogging platform where users can create, read, search, and explore blogs. It highlights popular posts and provides a clean interface for publishing and browsing content.
-          </p>
+            <?= htmlspecialchars(getContent('hero_description')) ?> </p>
         </div>
 
         <div class="w-full md:w-1/2 flex min-h-[300px] md:min-h-full">
           <img
-            src="https://images.unsplash.com/photo-1455390582262-044cdead277a"
-            alt="Blog Hero"
+            src="<?= htmlspecialchars(getContent('hero_image')) ?>" alt="Blog Hero"
             class="rounded-lg shadow-lg w-full h-full object-cover" />
         </div>
 
@@ -109,7 +107,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'home';
       <div class="container mx-auto">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-gray-800">
-            Popular Blogs
+            <?= htmlspecialchars(getContent('popular_title')) ?>
           </h2>
 
           <a href="index.php?page=popular"
@@ -160,7 +158,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'home';
     <div class="px-4 py-8 md:p-10 bg-gray-50">
       <div class="container mx-auto">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">Recent Stories</h2>
+          <h2 class="text-2xl font-bold text-gray-800"><?= htmlspecialchars(getContent('recent_title')) ?></h2>
           <a href="index.php?page=all" class="text-blue-600 hover:underline font-medium">View All</a>
         </div>
 
@@ -214,7 +212,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'home';
 
           <h2 class="text-3xl font-bold text-gray-800">Search Results</h2>
         </div>
-        <p class="text-gray-500 mb-8">Showing matching results for: <span class="font-semibold text-blue-600">"<?= htmlspecialchars($search_query); ?>"</span></p>
+        <p class="text-gray-500 mb-8" placeholder="Search blogs..."> <span class="font-semibold text-blue-600">"<?= htmlspecialchars($search_query); ?>"</span></p>
 
         <?php
         $like_term = "%" . $search_query . "%";
@@ -472,7 +470,7 @@ $page = isset($_GET['page']) ? $_GET['page'] : 'home';
   <footer class="bg-white mt-10 border-t">
     <div class="container mx-auto px-4 py-6 text-center">
       <p class="text-gray-600 text-sm md:text-base">
-        © 2026 BlogHub. All Rights Reserved.
+        <?= htmlspecialchars(getContent('footer_text')) ?>
       </p>
     </div>
   </footer>

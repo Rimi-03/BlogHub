@@ -441,3 +441,18 @@ function escapeHtml(string) {
 
     .replace(/'/g, "&#039;");
 }
+
+// dynamic page
+function toggleContentHubModal() {
+  const modal = document.getElementById("contentHubModal");
+
+  if (!modal) return;
+
+  if (modal.classList.contains("hidden")) {
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  } else {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
+}
