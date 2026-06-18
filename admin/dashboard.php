@@ -340,12 +340,13 @@ $is_form_active = ($edit_blog !== null);
 
         <?php if ($filter_author_id) { ?>
             <div class="mb-6">
-                <a href="dashboard.php" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition border border-blue-100 shadow-sm">
+                <button
+                    onclick="window.location.href='dashboard.php?open_author_hub=1'"
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition border border-blue-100 shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                     </svg>
-                    <span>Back to All Posts</span>
-                </a>
+                </button>
             </div>
         <?php } ?>
 
@@ -508,7 +509,7 @@ $is_form_active = ($edit_blog !== null);
                     <div id="modalAuthorsListView" class="divide-y divide-gray-100 max-h-[220px] overflow-y-auto border border-gray-200 rounded-xl bg-white p-2">
                         <?php foreach ($authors as $auth) { ?>
                             <div class="flex items-center justify-between py-2.5 px-3 hover:bg-gray-50 rounded-lg group transition">
-                                <a href="dashboard.php?author_view_id=<?= $auth['author_id'] ?>" class="text-xs font-semibold text-gray-700 hover:text-blue-600 transition truncate pr-2">
+                                <a href="dashboard.php?author_view_id=<?= $auth['author_id'] ?>&open_author_hub=1" class="text-xs font-semibold text-gray-700 hover:text-blue-600 transition truncate pr-2">
                                     <?= htmlspecialchars($auth['username']) ?>
                                 </a>
                                 <form method="POST" action="dashboard.php" onsubmit="return confirm('Remove author profile completely?');">
@@ -527,6 +528,7 @@ $is_form_active = ($edit_blog !== null);
         </div>
     </div>
 
+
     <script src="dashboard.js"></script>
 </body>
 
@@ -535,3 +537,10 @@ $is_form_active = ($edit_blog !== null);
 multiple image
  session(admin authentication)
  dynamic -->
+
+<!-- 
+ available system
+ feature
+ srs
+ database
+ timeline -->
