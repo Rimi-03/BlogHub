@@ -344,61 +344,90 @@ $is_form_active = ($edit_blog !== null);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - BlogHub</title>
+    <script>
+        (function () {
+            var savedTheme = null;
+
+            try {
+                savedTheme = localStorage.getItem('theme');
+            } catch (error) {
+                savedTheme = null;
+            }
+
+            var preferredTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            var theme = savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : preferredTheme;
+            document.documentElement.classList.toggle('dark', theme === 'dark');
+            document.documentElement.classList.toggle('light', theme === 'light');
+            document.documentElement.dataset.theme = theme;
+            document.documentElement.style.colorScheme = theme;
+        }());
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../theme.css">
+    <script src="../theme.js" defer></script>
 </head>
 
-<body class="bg-gray-50 min-h-screen text-gray-800 font-sans relative">
+<body class="theme-page theme-admin-page bg-gray-50 min-h-screen text-gray-800 font-sans relative">
 
     <div id="toastContainer" class="fixed top-5 right-5 z-50 space-y-3 pointer-events-none max-w-sm w-full px-4 sm:px-0">
         <?php if ($message) { ?>
-            <div class="toast-alert pointer-events-auto bg-green-600 text-white p-4 rounded-xl shadow-xl flex items-center justify-between font-medium text-sm transition-all duration-300">
+            <div class="theme-toast toast-alert pointer-events-auto bg-green-600 text-white p-4 rounded-xl shadow-xl flex items-center justify-between font-medium text-sm transition-all duration-300">
                 <span><?= htmlspecialchars($message) ?></span>
                 <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200 font-bold ml-3 text-lg">&times;</button>
             </div>
         <?php } ?>
         <?php if ($error) { ?>
-            <div class="toast-alert pointer-events-auto bg-red-600 text-white p-4 rounded-xl shadow-xl flex items-center justify-between font-medium text-sm transition-all duration-300">
+            <div class="theme-toast toast-alert pointer-events-auto bg-red-600 text-white p-4 rounded-xl shadow-xl flex items-center justify-between font-medium text-sm transition-all duration-300">
                 <span><?= htmlspecialchars($error) ?></span>
                 <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200 font-bold ml-3 text-lg">&times;</button>
             </div>
         <?php } ?>
     </div>
 
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-40 px-4 py-3 shadow-sm">
-        <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <nav class="theme-nav theme-admin-nav bg-white border-b border-gray-200 sticky top-0 z-40 px-4 py-3 shadow-sm">
+        <div class="theme-admin-nav-inner max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center justify-between w-full md:w-auto">
                 <div class="flex items-center gap-2.5">
-                    <a href="dashboard.php" class="text-xl font-bold tracking-tight text-blue-600 hover:text-blue-700">BlogHub Dashboard</a>
-                    <span class="text-[11px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium whitespace-nowrap">
+                    <a href="dashboard.php" class="theme-brand text-xl font-bold tracking-tight text-blue-600 hover:text-blue-700">BlogHub Dashboard</a>
+                    <span class="theme-status-badge text-[11px] bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-medium whitespace-nowrap">
                         Admin Mode: <strong class="text-blue-600"><?= htmlspecialchars($_SESSION["admin_name"] ?? 'Active') ?></strong>
                     </span>
-                    <span id="sessionTimer" class="text-[11px] text-red-600 font-bold bg-red-50 px-2 py-1 rounded-md">--:--</span>
+                    <span id="sessionTimer" class="theme-timer text-[11px] text-red-600 font-bold bg-red-50 px-2 py-1 rounded-md">--:--</span>
+                    <button type="button" data-theme-toggle class="theme-toggle" aria-label="Switch to dark theme" aria-pressed="false" title="Switch to dark theme">
+                        <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.4 15.2A8.5 8.5 0 018.8 3.6 8.5 8.5 0 1020.4 15.2z" />
+                        </svg>
+                        <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <circle cx="12" cy="12" r="4" />
+                            <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3l1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3l1.42-1.42" />
+                        </svg>
+                    </button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 sm:flex items-center justify-center md:justify-end gap-2 w-full md:w-auto border-t md:border-0 pt-2 md:pt-0">
+            <div class="theme-actions grid grid-cols-3 sm:flex items-center justify-center md:justify-end gap-2 w-full md:w-auto border-t md:border-0 pt-2 md:pt-0">
                 <button onclick="toggleContentHubModal()"
-                    class="text-[11px] sm:text-sm bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition shadow-sm">
+                    class="theme-button theme-button-purple text-[11px] sm:text-sm bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition shadow-sm">
                     Site Settings
                 </button>
-                <button onclick="toggleCreatePostForm()" class="text-[11px] sm:text-sm bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition shadow-sm truncate text-center">
+                <button onclick="toggleCreatePostForm()" class="theme-button theme-button-success text-[11px] sm:text-sm bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition shadow-sm truncate text-center">
                     <?= $is_form_active ? 'Show Posts' : 'Create Post' ?>
                 </button>
-                <button onclick="toggleAuthorManagementModal()" class="text-[11px] sm:text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition shadow-sm truncate text-center">
+                <button onclick="toggleAuthorManagementModal()" class="theme-button theme-button-primary text-[11px] sm:text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition shadow-sm truncate text-center">
                     Create Author
                 </button>
-                <a href="index.php?action=logout" class="text-[11px] sm:text-sm text-center text-red-500 hover:text-red-600 border border-red-200 hover:bg-red-50 py-2 px-3 sm:px-4 rounded-lg transition font-medium truncate">Logout</a>
+                <a href="index.php?action=logout" class="theme-button theme-button-danger text-[11px] sm:text-sm text-center text-red-500 hover:text-red-600 border border-red-200 hover:bg-red-50 py-2 px-3 sm:px-4 rounded-lg transition font-medium truncate">Logout</a>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+    <main class="theme-admin-main max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
 
         <?php if ($filter_author_id) { ?>
             <div class="mb-6">
                 <button
                     onclick="window.location.href='dashboard.php?open_author_hub=1'"
-                    class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition border border-blue-100 shadow-sm">
+                    class="theme-button theme-button-secondary inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition border border-blue-100 shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                     </svg>
@@ -406,8 +435,8 @@ $is_form_active = ($edit_blog !== null);
             </div>
         <?php } ?>
 
-        <div id="createPostSection" class="<?= $is_form_active ? 'block' : 'hidden' ?> bg-white p-5 sm:p-6 rounded-2xl border border-gray-200 shadow-sm mb-8 transition-all duration-300">
-            <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <div id="createPostSection" class="theme-panel <?= $is_form_active ? 'block' : 'hidden' ?> bg-white p-5 sm:p-6 rounded-2xl border border-gray-200 shadow-sm mb-8 transition-all duration-300">
+            <div class="theme-panel-header flex justify-between items-center mb-4 border-b pb-3">
                 <h2 class="text-lg font-bold text-gray-900">
                     <?= $edit_blog ? 'Update This Post' : 'Create a Brand New Blog Story' ?>
                 </h2>
@@ -421,21 +450,21 @@ $is_form_active = ($edit_blog !== null);
                     <input type="hidden" name="existing_cover_image" value="<?= htmlspecialchars($edit_blog['cover_image']) ?>">
                 <?php endif; ?>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="theme-form-grid grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Title *</label>
-                        <input type="text" name="title" required value="<?= $edit_blog ? htmlspecialchars($edit_blog['title']) : '' ?>" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <input type="text" name="title" required value="<?= $edit_blog ? htmlspecialchars($edit_blog['title']) : '' ?>" class="theme-input w-full border border-gray-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Subtitle</label>
-                        <input type="text" name="subtitle" value="<?= $edit_blog ? htmlspecialchars($edit_blog['subtitle']) : '' ?>" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <input type="text" name="subtitle" value="<?= $edit_blog ? htmlspecialchars($edit_blog['subtitle']) : '' ?>" class="theme-input w-full border border-gray-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="theme-form-grid grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Assign Author *</label>
-                        <select name="author_id" id="authorSelectField" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium">
+                        <select name="author_id" id="authorSelectField" required class="theme-input w-full border border-gray-300 rounded-xl p-2.5 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium">
                             <option value="">-- Choose Author --</option>
                             <?php foreach ($authors as $auth) { ?>
                                 <option value="<?= $auth['author_id'] ?>" <?= ($edit_blog && $edit_blog['author_id'] == $auth['author_id']) ? 'selected' : '' ?>>
@@ -446,14 +475,14 @@ $is_form_active = ($edit_blog !== null);
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Primary Cover Image</label>
-                        <input type="file" name="cover_image" accept="image/*" class="w-full border border-gray-300 rounded-xl p-2 text-sm bg-white">
+                        <input type="file" name="cover_image" accept="image/*" class="theme-input w-full border border-gray-300 rounded-xl p-2 text-sm bg-white">
                     </div>
                 </div>
 
-                <div class="bg-gray-50 p-4 border border-dashed rounded-xl border-gray-300">
+                <div class="theme-dropzone bg-gray-50 p-4 border border-dashed rounded-xl border-gray-300">
                     <label class="block text-xs font-bold text-gray-700 mb-1">Additional Gallery Images (Upload Multiple - Max 7)</label>
                     <p class="text-[11px] text-gray-400 mb-2">Select up to 7 layout files or context illustrations as needed for this article deck.</p>
-                    <input type="file" id="galleryImagesInput" name="additional_images[]" accept="image/*" multiple class="w-full text-sm bg-white border rounded-lg p-2 file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    <input type="file" id="galleryImagesInput" name="additional_images[]" accept="image/*" multiple class="theme-input w-full text-sm bg-white border rounded-lg p-2 file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
 
                     <?php if ($edit_blog && $existing_gallery_count > 0): ?>
                         <div class="mt-3 flex items-center gap-2">
@@ -465,28 +494,28 @@ $is_form_active = ($edit_blog !== null);
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Short Description *</label>
-                    <input type="text" name="description" required value="<?= $edit_blog ? htmlspecialchars($edit_blog['description']) : '' ?>" class="w-full border border-gray-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Summary snippet...">
+                    <input type="text" name="description" required value="<?= $edit_blog ? htmlspecialchars($edit_blog['description']) : '' ?>" class="theme-input w-full border border-gray-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="Summary snippet...">
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Content Body *</label>
-                    <textarea name="content" rows="5" required class="w-full border border-gray-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none font-serif" placeholder="Write content..."><?= $edit_blog ? htmlspecialchars($edit_blog['content']) : '' ?></textarea>
+                    <textarea name="content" rows="5" required class="theme-input w-full border border-gray-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none font-serif" placeholder="Write content..."><?= $edit_blog ? htmlspecialchars($edit_blog['content']) : '' ?></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-2">
-                    <button type="button" onclick="toggleCreatePostForm()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition">View Recent Posts</button>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition shadow-sm">
+                    <button type="button" onclick="toggleCreatePostForm()" class="theme-button theme-button-secondary bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition">View Recent Posts</button>
+                    <button type="submit" class="theme-button theme-button-primary bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-5 py-2.5 rounded-xl transition shadow-sm">
                         <?= $edit_blog ? 'Save Changes' : 'Publish Article' ?>
                     </button>
                 </div>
             </form>
         </div>
 
-        <div id="recentPostsSection" class="<?= $is_form_active ? 'hidden' : 'block' ?> space-y-4">
+        <div id="recentPostsSection" class="theme-list <?= $is_form_active ? 'hidden' : 'block' ?> space-y-4">
             <div class="flex justify-between items-center mb-2">
                 <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
                     <?= $filter_author_id ? "Showing Stories by " . htmlspecialchars($active_author_name) : "All System Blog Stories" ?>
-                    <span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-normal"><?= $blogs_res->num_rows ?> articles</span>
+                    <span class="theme-count-badge text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-normal"><?= $blogs_res->num_rows ?> articles</span>
                 </h3>
             </div>
 
@@ -495,7 +524,7 @@ $is_form_active = ($edit_blog !== null);
                     while ($blog = $blogs_res->fetch_assoc()) {
                         $imgUrl = (strpos($blog['cover_image'], 'http') === 0) ? $blog['cover_image'] : '../' . $blog['cover_image'];
                 ?>
-                        <div onclick="openBlogReadModal(<?= $blog['blog_id'] ?>)" class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between shadow-sm hover:border-gray-300 transition cursor-pointer group/row">
+                        <div onclick="openBlogReadModal(<?= $blog['blog_id'] ?>)" class="theme-list-row bg-white border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between shadow-sm hover:border-gray-300 transition cursor-pointer group/row">
                             <div class="flex items-center gap-3 min-w-0 flex-1">
                                 <img src="<?= htmlspecialchars($imgUrl) ?>" class="w-12 h-12 rounded-lg object-cover bg-gray-100 flex-shrink-0 border">
                                 <div class="min-w-0 flex-1">
@@ -505,7 +534,7 @@ $is_form_active = ($edit_blog !== null);
                                         <span>•</span>
                                         <span><?= date('M d, Y', strtotime($blog['publish_date'])) ?></span>
                                         <span>•</span>
-                                        <span class="bg-blue-50 border border-blue-200 text-blue-700 px-1.5 py-0.2 rounded text-[10px] font-bold">
+                                        <span class="theme-badge theme-badge-accent bg-blue-50 border border-blue-200 text-blue-700 px-1.5 py-0.2 rounded text-[10px] font-bold">
                                             <?= number_format($blog['views']) ?> Views
                                         </span>
                                     </div>
@@ -513,13 +542,13 @@ $is_form_active = ($edit_blog !== null);
                             </div>
 
                             <div class="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-0 pt-2 sm:pt-0 shrink-0">
-                                <button onclick="event.stopPropagation(); window.location.href='dashboard.php'?edit_id=<?= $blog['blog_id'] ?><?= $filter_author_id ? '&author_view_id=' . $filter_author_id : '' ?>'" class="text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium">
+                                <button onclick="event.stopPropagation(); window.location.href='dashboard.php'?edit_id=<?= $blog['blog_id'] ?><?= $filter_author_id ? '&author_view_id=' . $filter_author_id : '' ?>'" class="theme-button theme-button-secondary text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium">
                                     Edit
                                 </button>
                                 <form method="POST" action="dashboard.php" onsubmit="event.stopPropagation(); return confirm('Are you sure you want to permanently delete this blog story?');" class="inline">
                                     <input type="hidden" name="action" value="delete_blog">
                                     <input type="hidden" name="blog_id" value="<?= $blog['blog_id'] ?>">
-                                    <button type="submit" onclick="event.stopPropagation();" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 border border-red-100 rounded-lg transition font-medium">
+                                    <button type="submit" onclick="event.stopPropagation();" class="theme-button theme-button-danger text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 border border-red-100 rounded-lg transition font-medium">
                                         Delete
                                     </button>
                                 </form>
@@ -527,14 +556,14 @@ $is_form_active = ($edit_blog !== null);
                         </div>
                     <?php }
                 } else { ?>
-                    <div class="text-center p-8 bg-white border rounded-xl text-gray-400 text-sm italic">No blog stories found.</div>
+                    <div class="theme-empty-state text-center p-8 bg-white border rounded-xl text-gray-400 text-sm italic">No blog stories found.</div>
                 <?php } ?>
             </div>
         </div>
     </main>
 
-    <div id="blogReadModal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50 transition-all duration-300">
-        <div class="bg-white rounded-2xl w-full max-w-3xl p-5 sm:p-6 shadow-xl border border-gray-100 max-h-[85vh] flex flex-col transition-all transform duration-300 scale-95" id="blogReadCard">
+    <div id="blogReadModal" class="theme-modal fixed inset-0 bg-gray-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50 transition-all duration-300">
+        <div class="theme-modal-card bg-white rounded-2xl w-full max-w-3xl p-5 sm:p-6 shadow-xl border border-gray-100 max-h-[85vh] flex flex-col transition-all transform duration-300 scale-95" id="blogReadCard">
             <div class="flex justify-between items-center mb-4 border-b pb-2 shrink-0">
                 <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider">Article Quick Preview</h3>
                 <button type="button" onclick="closeBlogReadModal()" class="text-gray-400 hover:text-gray-600 text-xl font-medium leading-none">&times;</button>
@@ -543,55 +572,53 @@ $is_form_active = ($edit_blog !== null);
         </div>
     </div>
 
-    <div id="authorManagementModal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50 transition-all duration-300">
-        <div class="bg-white rounded-2xl w-full max-w-2xl p-5 sm:p-6 shadow-xl border border-gray-100 transform scale-95 transition-all duration-300" id="authorModalCard">
+    <div id="authorManagementModal" class="theme-modal fixed inset-0 bg-gray-900/40 backdrop-blur-sm hidden items-center justify-center p-4 z-50 transition-all duration-300">
+        <div class="theme-modal-card bg-white rounded-2xl w-full max-w-2xl p-5 sm:p-6 shadow-xl border border-gray-100 transform scale-95 transition-all duration-300" id="authorModalCard">
             <div class="flex justify-between items-center mb-4 border-b pb-2">
                 <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">Author Management Hub</h3>
                 <button type="button" onclick="toggleAuthorManagementModal()" class="text-gray-400 hover:text-gray-600 text-xl font-medium leading-none">&times;</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                <div class="theme-subpanel bg-gray-50 p-4 rounded-xl border border-gray-100">
                     <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Create New Author</h4>
                     <form id="ajaxAuthorForm" onsubmit="submitAuthorFormAsync(event)">
                         <div class="mb-4">
                             <label class="block text-xs font-semibold text-gray-600 mb-1">Author Name *</label>
-                            <input type="text" id="modalAuthorNameInput" required placeholder="e.g., Rachel Green" class="w-full border border-gray-300 rounded-xl p-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="text" id="modalAuthorNameInput" required placeholder="e.g., Rachel Green" class="theme-input w-full border border-gray-300 rounded-xl p-2 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-xl transition shadow-sm">Save Profile</button>
+                        <button type="submit" class="theme-button theme-button-primary w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-xl transition shadow-sm">Save Profile</button>
                     </form>
                 </div>
                 <div>
                     <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Available Authors</h4>
-                    <div id="modalAuthorsListView" class="divide-y divide-gray-100 max-h-[220px] overflow-y-auto border border-gray-200 rounded-xl bg-white p-2">
+                    <div id="modalAuthorsListView" class="theme-list-container divide-y divide-gray-100 max-h-[220px] overflow-y-auto border border-gray-200 rounded-xl bg-white p-2">
                         <?php foreach ($authors as $auth) { ?>
-                            <div class="flex items-center justify-between py-2.5 px-3 hover:bg-gray-50 rounded-lg group transition">
+                            <div class="theme-author-row flex items-center justify-between py-2.5 px-3 hover:bg-gray-50 rounded-lg group transition">
                                 <a href="dashboard.php?author_view_id=<?= $auth['author_id'] ?>&open_author_hub=1" class="text-xs font-semibold text-gray-700 hover:text-blue-600 transition truncate pr-2">
-                                    <a href="dashboard.php?author_view_id=<?= $auth['author_id'] ?>"
-                                        class="text-xs font-semibold text-gray-700 hover:text-blue-600 transition truncate pr-2">
-                                        <?= htmlspecialchars($auth['username']) ?>
-                                    </a>
-                                    <form method="POST" action="dashboard.php" onsubmit="return confirm('Remove author profile completely?');">
-                                        <input type="hidden" name="action" value="delete_author">
-                                        <input type="hidden" name="author_id" value="<?= $auth['author_id'] ?>">
-                                        <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 font-medium opacity-60 group-hover:opacity-100 transition shrink-0">Remove</button>
-                                    </form>
+                                    <?= htmlspecialchars($auth['username']) ?>
+                                </a>
+                                <form method="POST" action="dashboard.php" onsubmit="return confirm('Remove author profile completely?');">
+                                    <input type="hidden" name="action" value="delete_author">
+                                    <input type="hidden" name="author_id" value="<?= $auth['author_id'] ?>">
+                                    <button type="submit" class="theme-button theme-button-danger text-[10px] text-red-500 hover:text-red-700 font-medium opacity-60 group-hover:opacity-100 transition shrink-0">Remove</button>
+                                </form>
                             </div>
                         <?php } ?>
                     </div>
                 </div>
             </div>
             <div class="flex justify-end pt-4 mt-4 border-t">
-                <button type="button" onclick="toggleAuthorManagementModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-xl transition">Close</button>
+                <button type="button" onclick="toggleAuthorManagementModal()" class="theme-button theme-button-secondary bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-xl transition">Close</button>
             </div>
         </div>
     </div>
 
-    <<div id="contentHubModal"
-        class="fixed inset-0 bg-black/40 hidden items-center justify-center p-4 z-50">
+    <div id="contentHubModal"
+        class="theme-modal fixed inset-0 bg-black/40 hidden items-center justify-center p-4 z-50">
 
-        <div class="bg-white w-full max-w-3xl rounded-2xl p-6 shadow-xl max-h-[80vh] overflow-y-auto">
+        <div class="theme-modal-card bg-white w-full max-w-3xl rounded-2xl p-6 shadow-xl max-h-[80vh] overflow-y-auto">
 
-            <div class="flex justify-between border-b pb-3 mb-4">
+            <div class="theme-panel-header flex justify-between border-b pb-3 mb-4">
                 <h2 class="font-bold text-lg">Site Settings</h2>
                 <button onclick="toggleContentHubModal()" class="text-xl">&times;</button>
             </div>
@@ -601,7 +628,7 @@ $is_form_active = ($edit_blog !== null);
             while ($c = $contents->fetch_assoc()) {
             ?>
 
-                <div class="border rounded-lg p-3 mb-4 bg-gray-50">
+                <div class="theme-content-row border rounded-lg p-3 mb-4 bg-gray-50">
 
                     <!-- UPDATE FORM -->
                     <form method="POST" action="dashboard.php">
@@ -613,15 +640,16 @@ $is_form_active = ($edit_blog !== null);
                         </label>
 
                         <textarea name="content_value"
-                            class="w-full border p-2 rounded mt-1 text-sm"
+                            class="theme-input w-full border p-2 rounded mt-1 text-sm"
                             rows="2"><?= htmlspecialchars($c['content_value']) ?></textarea>
 
                         <div class="flex gap-2 mt-2">
 
                             <!-- UPDATE BUTTON -->
-                            <button class="bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                            <button class="theme-button theme-button-primary bg-blue-600 text-white px-3 py-1 rounded text-xs">
                                 Update
                             </button>
+                        </div>
                     </form>
 
                     <!-- DELETE FORM -->
@@ -631,7 +659,7 @@ $is_form_active = ($edit_blog !== null);
                         <input type="hidden" name="action" value="delete_content">
                         <input type="hidden" name="content_key" value="<?= $c['content_key'] ?>">
 
-                        <button class="bg-red-600 text-white px-3 py-1 rounded text-xs">
+                        <button class="theme-button theme-button-danger bg-red-600 text-white px-3 py-1 rounded text-xs">
                             Delete
                         </button>
 
@@ -643,7 +671,6 @@ $is_form_active = ($edit_blog !== null);
 
     <?php } ?>
 
-    </div>
     </div>
 
     <script>

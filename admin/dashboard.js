@@ -86,7 +86,7 @@ function spawnFloatingToast(text, type = "success") {
 
   const toast = document.createElement("div");
 
-  toast.className = `toast-alert pointer-events-auto ${type === "success" ? "bg-green-600" : "bg-red-600"} text-white p-4 rounded-xl shadow-xl flex items-center justify-between font-medium text-sm transition-all duration-300`;
+  toast.className = `theme-toast toast-alert pointer-events-auto ${type === "success" ? "bg-green-600" : "bg-red-600"} text-white p-4 rounded-xl shadow-xl flex items-center justify-between font-medium text-sm transition-all duration-300`;
 
   toast.innerHTML = `<span>${type === "success" ? "🎉" : "⚠️"} ${escapeHtml(text)}</span>
 
@@ -147,7 +147,7 @@ function openBlogReadModal(blogId) {
 
   if (!modal || !contentBox) return;
 
-  contentBox.innerHTML = `<div class="text-center py-8 text-gray-400 text-sm animate-pulse">Loading story content data safely...</div>`;
+  contentBox.innerHTML = `<div class="theme-loading text-center py-8 text-gray-400 text-sm animate-pulse">Loading story content data safely...</div>`;
 
   modal.classList.remove("hidden");
 
@@ -190,11 +190,11 @@ function openBlogReadModal(blogId) {
 
                 <div class="space-y-2">
 
-                    <h1 class="text-xl sm:text-2xl font-black text-gray-900 leading-tight">${escapeHtml(b.title)}</h1>
+                    <h1 class="theme-preview-title text-xl sm:text-2xl font-black text-gray-900 leading-tight">${escapeHtml(b.title)}</h1>
 
-                    ${b.subtitle ? `<p class="text-sm text-gray-500 font-medium italic">${escapeHtml(b.subtitle)}</p>` : ""}
+                    ${b.subtitle ? `<p class="theme-preview-subtitle text-sm text-gray-500 font-medium italic">${escapeHtml(b.subtitle)}</p>` : ""}
 
-                    <div class="flex items-center gap-2 text-xs text-gray-400 pt-1">
+                    <div class="theme-preview-meta flex items-center gap-2 text-xs text-gray-400 pt-1">
 
                         <span>By <strong class="text-blue-600 font-semibold">${escapeHtml(b.username)}</strong></span>
 
@@ -208,7 +208,7 @@ function openBlogReadModal(blogId) {
 
 
 
-                <div class="relative w-full h-56 sm:h-72 rounded-xl overflow-hidden border bg-gray-900 group">
+                <div class="theme-media-frame relative w-full h-56 sm:h-72 rounded-xl overflow-hidden border bg-gray-900 group">
 
                     <img id="modalCarouselDisplay" src="${escapeHtml(activeCarouselImages[0] || "../uploads/default.jpg")}" class="w-full h-full object-contain transition-all duration-300">
 
@@ -238,7 +238,7 @@ function openBlogReadModal(blogId) {
 
 
 
-                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200/60 text-xs font-medium text-gray-600 leading-relaxed">
+                <div class="theme-preview-summary bg-gray-50 p-3.5 rounded-xl border border-gray-200/60 text-xs font-medium text-gray-600 leading-relaxed">
 
                     <strong class="text-gray-800 text-[11px] uppercase tracking-wider block mb-1">Short Summary:</strong>
 
@@ -246,7 +246,7 @@ function openBlogReadModal(blogId) {
 
                 </div>
 
-                <div class="text-sm text-gray-800 font-serif leading-relaxed whitespace-pre-wrap pt-2 border-t border-dashed">${escapeHtml(b.content)}</div>
+                <div class="theme-preview-body text-sm text-gray-800 font-serif leading-relaxed whitespace-pre-wrap pt-2 border-t border-dashed">${escapeHtml(b.content)}</div>
 
             `;
       } else {
@@ -349,7 +349,7 @@ function submitAuthorFormAsync(event) {
           const authorRow = document.createElement("div");
 
           authorRow.className =
-            "flex items-center justify-between py-2.5 px-3 hover:bg-gray-50 rounded-lg group transition";
+            "theme-author-row flex items-center justify-between py-2.5 px-3 hover:bg-gray-50 rounded-lg group transition";
 
           authorRow.innerHTML = `
 
@@ -365,7 +365,7 @@ function submitAuthorFormAsync(event) {
 
                         <input type="hidden" name="author_id" value="${data.author_id}">
 
-                        <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 font-medium opacity-60 group-hover:opacity-100 transition shrink-0">Remove</button>
+                        <button type="submit" class="theme-button theme-button-danger text-[10px] text-red-500 hover:text-red-700 font-medium opacity-60 group-hover:opacity-100 transition shrink-0">Remove</button>
 
                     </form>
 
