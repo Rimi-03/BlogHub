@@ -111,10 +111,6 @@ The blog listing and single-post pages fetch blog data from the `blogs` table, j
 
 The homepage includes an autocomplete-like search field. The frontend calls `search_suggestions.php` while typing, and the search form redirects to `index.php?page=search&q=...` when a valid query is submitted.
 
-## License
-
-This project does not currently include a license file. Please check with the repository owner before using it in production or redistributing it.
-
 ## Contribution
 
 Contributions are welcome. If you want to improve the project, open a pull request with a clear description of the change.
