@@ -17,7 +17,7 @@ BlogHub is a PHP-based blog platform with a public-facing blog homepage, categor
 - PHP
 - MySQL / MariaDB
 - JavaScript
-- Tailwind CSS via CDN
+- Tailwind CSS
 
 ## Project Structure
 
@@ -40,118 +40,49 @@ BlogHub/
 
 ## Requirements
 
-- PHP 7.4 or later
+- PHP 7.4+
 - MySQL or MariaDB
-- A web server such as Apache, Nginx, XAMPP, or the PHP built-in development server
-- A modern web browser
+- Apache or Nginx web server
+- Composer is not required for this project
 
-Composer and Node.js are not required.
+## Installation
 
-## How to Run Locally
-
-### Option 1: PHP built-in development server
-
-1. Clone the repository and enter the project directory:
+1. Clone the repository:
 
 ```bash
 git clone https://github.com/Rimi-03/BlogHub.git
 cd BlogHub
 ```
 
-2. Make sure PHP and MySQL are installed and running.
+2. Create a MySQL database named `db_bloghub`.
 
-3. Create a MySQL database named `db_bloghub`.
-
-4. Import the BlogHub database schema and seed data into `db_bloghub`. The application expects tables such as:
-
-   - `admin`
-   - `author`
-   - `blogs`
-   - `blog_images`
-   - `site_content`
-
-5. Configure the database connection in `db.php`. The default configuration is:
+3. Update the database connection in `db.php` if needed:
 
 ```php
 $conn = new mysqli("localhost", "root", "", "db_bloghub");
 ```
 
-Change the host, username, password, or database name if your local MySQL setup uses different values.
+Use your actual database credentials and database name.
 
-6. From the project root, start the PHP server:
+4. Import your schema and seed data into the database. The application expects tables including:
+
+- `admin`
+- `author`
+- `blogs`
+- `blog_images`
+- `site_content`
+
+5. Start a local PHP server from the project root:
 
 ```bash
 php -S localhost:8000
 ```
 
-Keep this terminal window running.
-
-7. Open the public website in a browser:
-
-```text
-http://localhost:8000/
-```
-
-The main entry point is `index.php`, so this URL also works:
+6. Open the app in your browser:
 
 ```text
 http://localhost:8000/index.php
 ```
-
-8. Open the admin panel at:
-
-```text
-http://localhost:8000/admin/
-```
-
-### Option 2: XAMPP
-
-1. Install XAMPP and start **Apache** and **MySQL** from the XAMPP Control Panel.
-2. Copy or clone this repository into XAMPP's web root:
-
-```text
-C:\xampp\htdocs\BlogHub
-```
-
-On macOS, the equivalent location is commonly:
-
-```text
-/Applications/XAMPP/htdocs/BlogHub
-```
-
-3. Open phpMyAdmin at `http://localhost/phpmyadmin`.
-4. Create a database named `db_bloghub`.
-5. Import the database schema and seed data into that database.
-6. Check `db.php` and update the MySQL credentials if necessary.
-7. Visit the application:
-
-```text
-http://localhost/BlogHub/
-```
-
-8. Visit the admin panel:
-
-```text
-http://localhost/BlogHub/admin/
-```
-
-## Database Configuration
-
-The application connects to MySQL through `db.php`. Before running the project, verify these values:
-
-```php
-$conn = new mysqli("localhost", "root", "", "db_bloghub");
-```
-
-The database should contain the tables used by the application:
-
-- `admin` — administrator login accounts
-- `author` — blog authors
-- `blogs` — blog posts and view counts
-- `blog_images` — additional images attached to posts
-- `site_content` — editable homepage and footer content
-
-If no database dump is included in the repository, create the required schema and initial records before opening the application; otherwise, the pages will not be able to display posts or authenticate administrators.
 
 ## Admin Panel
 
@@ -161,21 +92,24 @@ The admin portal is available at:
 http://localhost:8000/admin/index.php
 ```
 
-For XAMPP, use:
+Use a valid admin account from the `admin` table in your database.
 
-```text
-http://localhost/BlogHub/admin/index.php
-```
+## Database Notes
 
-Log in with an administrator account stored in the `admin` table. Passwords are checked using PHP's password verification functions.
+The application reads several content blocks from the `site_content` table, such as:
+
+- hero title
+- hero description
+- hero image
+- footer text
+- popular section title
+- recent section title
+
+The blog listing and single-post pages fetch blog data from the `blogs` table, joined with `author`.
 
 ## Search Behavior
 
-The homepage includes an autocomplete-style search field. As the user types, `index.js` requests suggestions from `search_suggestions.php`. A valid search redirects to:
-
-```text
-index.php?page=search&q=your-query
-```
+The homepage includes an autocomplete-like search field. The frontend calls `search_suggestions.php` while typing, and the search form redirects to `index.php?page=search&q=...` when a valid query is submitted.
 
 ## License
 
@@ -184,3 +118,7 @@ This project does not currently include a license file. Please check with the re
 ## Contribution
 
 Contributions are welcome. If you want to improve the project, open a pull request with a clear description of the change.
+
+## Notes
+
+This project appears to be a self-contained blog CMS built for learning, demos, or small personal publishing workflows. Some setup details may vary depending on your local development environment and database schema.
