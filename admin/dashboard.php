@@ -336,6 +336,22 @@ if (isset($_GET['edit_id'])) {
 }
 
 $is_form_active = ($edit_blog !== null);
+
+// --- RESOLVE THE EDITING BLOG'S EXISTING COVER IMAGE ---
+// `cover_image` is the image path column on `blogs`. It holds EITHER a remote
+// URL ("https://...") OR a path relative to the PROJECT ROOT ("uploads/x.jpg"),
+// which is what the upload handlers store on create/update.
+// This page is served from /admin/, so a bare "uploads/x.jpg" in an <img src>
+// would resolve to /admin/uploads/x.jpg and 404. Local paths therefore need a
+// "../" prefix, exactly like the list view and the AJAX preview endpoint do.
+$edit_cover_image_raw = trim((string)($edit_blog['cover_image'] ?? ''));
+$edit_cover_image_src = '';
+
+if ($edit_cover_image_raw !== '') {
+    $edit_cover_image_src = (strpos($edit_cover_image_raw, 'http') === 0)
+        ? $edit_cover_image_raw
+        : '../' . ltrim($edit_cover_image_raw, '/');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -448,7 +464,7 @@ $is_form_active = ($edit_blog !== null);
                 <input type="hidden" name="action" value="<?= $edit_blog ? 'update_blog' : 'create_blog' ?>">
                 <?php if ($edit_blog): ?>
                     <input type="hidden" name="blog_id" value="<?= $edit_blog['blog_id'] ?>">
-                    <input type="hidden" name="existing_cover_image" value="<?= htmlspecialchars($edit_blog['cover_image']) ?>">
+                    <input type="hidden" name="existing_cover_image" value="<?= htmlspecialchars($edit_cover_image_raw) ?>">
                 <?php endif; ?>
 
                 <div class="theme-form-grid grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -476,6 +492,19 @@ $is_form_active = ($edit_blog !== null);
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Primary Cover Image</label>
+
+                        <?php if ($edit_cover_image_src !== ''): ?>
+                            <div id="coverImagePreviewWrap" class="theme-image-preview inline-block align-top bg-gray-50 border border-gray-200 rounded-xl p-2 mb-3">
+                                <img id="coverImagePreview"
+                                     src="<?= htmlspecialchars($edit_cover_image_src) ?>"
+                                     alt="Current Blog Image"
+                                     class="current-blog-img block w-auto h-auto max-w-[200px] max-h-[150px] rounded-lg object-cover border border-gray-200"
+                                     style="max-width: 200px; max-height: 150px; border-radius: 8px; object-fit: cover; display: block;"
+                                     onerror="this.closest('[id=coverImagePreviewWrap]').remove();">
+                                <p class="text-[11px] text-gray-400 mt-2 mb-0">Current picture &mdash; pick a new file only if you want to replace it.</p>
+                            </div>
+                        <?php endif; ?>
+
                         <input type="file" name="cover_image" accept="image/*" class="theme-input w-full border border-gray-300 rounded-xl p-2 text-sm bg-white">
                     </div>
                 </div>
@@ -543,7 +572,7 @@ $is_form_active = ($edit_blog !== null);
                             </div>
 
                             <div class="theme-action-row w-full sm:w-auto justify-end border-t sm:border-0 pt-2 sm:pt-0 shrink-0">
-                                <button onclick="event.stopPropagation(); window.location.href='dashboard.php'?edit_id=<?= $blog['blog_id'] ?><?= $filter_author_id ? '&author_view_id=' . $filter_author_id : '' ?>'" class="theme-button theme-button-secondary text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium whitespace-nowrap">
+                                <button type="button" onclick="openEditBlogForm(<?= $blog['blog_id'] ?>)" class="theme-button theme-button-secondary text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium whitespace-nowrap">
                                     Edit
                                 </button>
                                 <form method="POST" action="dashboard.php" onsubmit="event.stopPropagation(); return confirm('Are you sure you want to permanently delete this blog story?');">

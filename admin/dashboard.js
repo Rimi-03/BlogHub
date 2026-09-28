@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
   attachToastTimers();
   initModalEventListeners();
   initFormValidation();
+  initCoverImagePreview();
 });
 
 // --- Session Expiry Timer Logic ---
@@ -146,6 +147,28 @@ function toggleAuthorManagementModal() {
       history.replaceState(null, "", "dashboard.php");
     }, 150);
   }
+}
+
+// Routes to the edit form for a post. The list row itself opens the
+// read-only preview, so the click must never bubble up to that handler.
+function openEditBlogForm(blogId) {
+  if (event) {
+    event.stopPropagation();
+  }
+
+  const params = new URLSearchParams();
+
+  params.set("edit_id", blogId);
+
+  const authorViewId = new URLSearchParams(window.location.search).get(
+    "author_view_id",
+  );
+
+  if (authorViewId) {
+    params.set("author_view_id", authorViewId);
+  }
+
+  window.location.href = "dashboard.php?" + params.toString();
 }
 
 function openBlogReadModal(blogId) {
@@ -491,6 +514,55 @@ function initFormValidation() {
       }
     });
   }
+}
+
+function initCoverImagePreview() {
+  const fileInput = document.querySelector('input[name="cover_image"]');
+
+  if (!fileInput) return;
+
+  fileInput.addEventListener("change", function () {
+    const file = fileInput.files && fileInput.files[0];
+
+    if (!file || !file.type.startsWith("image/")) return;
+
+    let wrap = document.getElementById("coverImagePreviewWrap");
+    let img = document.getElementById("coverImagePreview");
+
+    // No existing picture on record, so build the preview shell on demand.
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.id = "coverImagePreviewWrap";
+      wrap.className =
+        "theme-image-preview inline-block align-top bg-gray-50 border border-gray-200 rounded-xl p-2 mb-3";
+      fileInput.parentNode.insertBefore(wrap, fileInput);
+    }
+
+    if (!img) {
+      img = document.createElement("img");
+      img.id = "coverImagePreview";
+      img.alt = "Selected Blog Image";
+      img.className =
+        "current-blog-img block w-auto h-auto max-w-[200px] max-h-[150px] rounded-lg object-cover border border-gray-200";
+      img.style.cssText =
+        "max-width: 200px; max-height: 150px; border-radius: 8px; object-fit: cover; display: block;";
+      wrap.appendChild(img);
+    }
+
+    if (img.dataset.objectUrl) {
+      URL.revokeObjectURL(img.dataset.objectUrl);
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    img.dataset.objectUrl = objectUrl;
+    img.src = objectUrl;
+
+    const hint = wrap.querySelector("p");
+
+    if (hint) {
+      hint.textContent = "New picture selected — it replaces the current one on save.";
+    }
+  });
 }
 
 function escapeHtml(string) {
