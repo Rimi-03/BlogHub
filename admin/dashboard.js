@@ -18,9 +18,20 @@ document.addEventListener("DOMContentLoaded", function () {
     history.replaceState(null, "", cleanUrl || window.location.pathname);
   }
 
+  // Reopen the isolated Site Settings drawer when the backend redirects back
+  // here with ?open_content_hub=1 (e.g. after an update/delete round trip).
+  if (urlParams.has("open_content_hub")) {
+    const settingsDrawer = document.getElementById("contentHubModal");
+    if (settingsDrawer && settingsDrawer.classList.contains("hidden")) {
+      openSiteSettingsDrawer();
+    }
+    stripUrlParam("open_content_hub");
+  }
+
   attachToastTimers();
   initModalEventListeners();
   initFormValidation();
+  initCoverImagePreview();
 });
 
 // --- Session Expiry Timer Logic ---
@@ -86,7 +97,7 @@ function spawnFloatingToast(text, type = "success") {
 
   const toast = document.createElement("div");
 
-  toast.className = `toast-alert pointer-events-auto ${type === "success" ? "bg-green-600" : "bg-red-600"} text-white p-4 rounded-xl shadow-xl flex items-center justify-between font-medium text-sm transition-all duration-300`;
+  toast.className = `theme-toast toast-alert pointer-events-auto ${type === "success" ? "bg-green-600" : "bg-red-600"} text-white p-4 rounded-xl shadow-xl flex items-center justify-between font-medium text-sm transition-all duration-300`;
 
   toast.innerHTML = `<span>${type === "success" ? "🎉" : "⚠️"} ${escapeHtml(text)}</span>
 
@@ -138,6 +149,28 @@ function toggleAuthorManagementModal() {
   }
 }
 
+// Routes to the edit form for a post. The list row itself opens the
+// read-only preview, so the click must never bubble up to that handler.
+function openEditBlogForm(blogId) {
+  if (event) {
+    event.stopPropagation();
+  }
+
+  const params = new URLSearchParams();
+
+  params.set("edit_id", blogId);
+
+  const authorViewId = new URLSearchParams(window.location.search).get(
+    "author_view_id",
+  );
+
+  if (authorViewId) {
+    params.set("author_view_id", authorViewId);
+  }
+
+  window.location.href = "dashboard.php?" + params.toString();
+}
+
 function openBlogReadModal(blogId) {
   const modal = document.getElementById("blogReadModal");
 
@@ -147,7 +180,7 @@ function openBlogReadModal(blogId) {
 
   if (!modal || !contentBox) return;
 
-  contentBox.innerHTML = `<div class="text-center py-8 text-gray-400 text-sm animate-pulse">Loading story content data safely...</div>`;
+  contentBox.innerHTML = `<div class="theme-loading text-center py-8 text-gray-400 text-sm animate-pulse">Loading story content data safely...</div>`;
 
   modal.classList.remove("hidden");
 
@@ -190,11 +223,11 @@ function openBlogReadModal(blogId) {
 
                 <div class="space-y-2">
 
-                    <h1 class="text-xl sm:text-2xl font-black text-gray-900 leading-tight">${escapeHtml(b.title)}</h1>
+                    <h1 class="theme-preview-title text-xl sm:text-2xl font-black text-gray-900 leading-tight">${escapeHtml(b.title)}</h1>
 
-                    ${b.subtitle ? `<p class="text-sm text-gray-500 font-medium italic">${escapeHtml(b.subtitle)}</p>` : ""}
+                    ${b.subtitle ? `<p class="theme-preview-subtitle text-sm text-gray-500 font-medium italic">${escapeHtml(b.subtitle)}</p>` : ""}
 
-                    <div class="flex items-center gap-2 text-xs text-gray-400 pt-1">
+                    <div class="theme-preview-meta flex items-center gap-2 text-xs text-gray-400 pt-1">
 
                         <span>By <strong class="text-blue-600 font-semibold">${escapeHtml(b.username)}</strong></span>
 
@@ -208,7 +241,7 @@ function openBlogReadModal(blogId) {
 
 
 
-                <div class="relative w-full h-56 sm:h-72 rounded-xl overflow-hidden border bg-gray-900 group">
+                <div class="theme-media-frame relative w-full h-56 sm:h-72 rounded-xl overflow-hidden border bg-gray-900 group">
 
                     <img id="modalCarouselDisplay" src="${escapeHtml(activeCarouselImages[0] || "../uploads/default.jpg")}" class="w-full h-full object-contain transition-all duration-300">
 
@@ -238,7 +271,7 @@ function openBlogReadModal(blogId) {
 
 
 
-                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-200/60 text-xs font-medium text-gray-600 leading-relaxed">
+                <div class="theme-preview-summary bg-gray-50 p-3.5 rounded-xl border border-gray-200/60 text-xs font-medium text-gray-600 leading-relaxed">
 
                     <strong class="text-gray-800 text-[11px] uppercase tracking-wider block mb-1">Short Summary:</strong>
 
@@ -246,7 +279,7 @@ function openBlogReadModal(blogId) {
 
                 </div>
 
-                <div class="text-sm text-gray-800 font-serif leading-relaxed whitespace-pre-wrap pt-2 border-t border-dashed">${escapeHtml(b.content)}</div>
+                <div class="theme-preview-body text-sm text-gray-800 font-serif leading-relaxed whitespace-pre-wrap pt-2 border-t border-dashed">${escapeHtml(b.content)}</div>
 
             `;
       } else {
@@ -349,7 +382,7 @@ function submitAuthorFormAsync(event) {
           const authorRow = document.createElement("div");
 
           authorRow.className =
-            "flex items-center justify-between py-2.5 px-3 hover:bg-gray-50 rounded-lg group transition";
+            "theme-author-row flex items-center justify-between py-2.5 px-3 hover:bg-gray-50 rounded-lg group transition";
 
           authorRow.innerHTML = `
 
@@ -365,7 +398,7 @@ function submitAuthorFormAsync(event) {
 
                         <input type="hidden" name="author_id" value="${data.author_id}">
 
-                        <button type="submit" class="text-[10px] text-red-500 hover:text-red-700 font-medium opacity-60 group-hover:opacity-100 transition shrink-0">Remove</button>
+                        <button type="submit" class="theme-button theme-button-danger text-[10px] text-red-500 hover:text-red-700 font-medium opacity-60 group-hover:opacity-100 transition shrink-0">Remove</button>
 
                     </form>
 
@@ -396,6 +429,8 @@ function initModalEventListeners() {
 
   const blogModal = document.getElementById("blogReadModal");
 
+  const settingsDrawer = document.getElementById("contentHubModal");
+
   if (authorModal) {
     authorModal.addEventListener("click", function (e) {
       if (e.target === this) toggleAuthorManagementModal();
@@ -407,6 +442,60 @@ function initModalEventListeners() {
       if (e.target === this) closeBlogReadModal();
     });
   }
+
+  // Clicking the scrim or anything marked as a drawer close target dismisses
+  // the Site Settings drawer without touching the inner panel.
+  if (settingsDrawer) {
+    settingsDrawer.addEventListener("click", function (e) {
+      if (e.target === this || e.target.dataset.drawerClose === "true") {
+        closeSiteSettingsDrawer();
+      }
+    });
+
+    // Keep Tab focus cycling inside the drawer while it is open.
+    settingsDrawer.addEventListener("keydown", function (e) {
+      if (e.key !== "Tab" || settingsDrawer.classList.contains("hidden")) return;
+
+      const focusables = settingsDrawer.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+
+      const visible = Array.from(focusables).filter(
+        (el) => !el.disabled && el.offsetParent !== null,
+      );
+
+      if (visible.length === 0) return;
+
+      const first = visible[0];
+      const last = visible[visible.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+
+    if (settingsDrawer && !settingsDrawer.classList.contains("hidden")) {
+      closeSiteSettingsDrawer();
+    }
+  });
+
+  window.addEventListener("popstate", function () {
+    if (
+      settingsDrawer &&
+      !settingsDrawer.classList.contains("hidden") &&
+      !window.location.search.includes(SITE_SETTINGS_URL_FLAG)
+    ) {
+      hideSiteSettingsDrawer();
+    }
+  });
 }
 
 function initFormValidation() {
@@ -427,6 +516,55 @@ function initFormValidation() {
   }
 }
 
+function initCoverImagePreview() {
+  const fileInput = document.querySelector('input[name="cover_image"]');
+
+  if (!fileInput) return;
+
+  fileInput.addEventListener("change", function () {
+    const file = fileInput.files && fileInput.files[0];
+
+    if (!file || !file.type.startsWith("image/")) return;
+
+    let wrap = document.getElementById("coverImagePreviewWrap");
+    let img = document.getElementById("coverImagePreview");
+
+    // No existing picture on record, so build the preview shell on demand.
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.id = "coverImagePreviewWrap";
+      wrap.className =
+        "theme-image-preview inline-block align-top bg-gray-50 border border-gray-200 rounded-xl p-2 mb-3";
+      fileInput.parentNode.insertBefore(wrap, fileInput);
+    }
+
+    if (!img) {
+      img = document.createElement("img");
+      img.id = "coverImagePreview";
+      img.alt = "Selected Blog Image";
+      img.className =
+        "current-blog-img block w-auto h-auto max-w-[200px] max-h-[150px] rounded-lg object-cover border border-gray-200";
+      img.style.cssText =
+        "max-width: 200px; max-height: 150px; border-radius: 8px; object-fit: cover; display: block;";
+      wrap.appendChild(img);
+    }
+
+    if (img.dataset.objectUrl) {
+      URL.revokeObjectURL(img.dataset.objectUrl);
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    img.dataset.objectUrl = objectUrl;
+    img.src = objectUrl;
+
+    const hint = wrap.querySelector("p");
+
+    if (hint) {
+      hint.textContent = "New picture selected — it replaces the current one on save.";
+    }
+  });
+}
+
 function escapeHtml(string) {
   if (!string) return "";
 
@@ -443,16 +581,117 @@ function escapeHtml(string) {
 }
 
 // dynamic page
+const SITE_SETTINGS_URL_FLAG = "open_content_hub=1";
+
+let siteSettingsRestoreFocus = null;
+
+let siteSettingsOpen = false;
+
+let siteSettingsHideTimer = null;
+
+// History calls are best-effort: sandboxed or file:// contexts can reject
+// them, and the drawer must never depend on the URL syncing to work.
+function safePushState(url) {
+  try {
+    history.pushState(null, "", url);
+  } catch (error) {
+    /* URL state is a convenience, not a requirement */
+  }
+}
+
+function stripUrlParam(param) {
+  const url = new URL(window.location.href);
+
+  if (!url.searchParams.has(param)) return;
+
+  url.searchParams.delete(param);
+
+  const search = url.searchParams.toString();
+
+  try {
+    history.replaceState(
+      null,
+      "",
+      url.pathname + (search ? "?" + search : ""),
+    );
+  } catch (error) {
+    /* URL state is a convenience, not a requirement */
+  }
+}
+
+function lockPageScroll(isLocked) {
+  document.body.classList.toggle("drawer-open", isLocked);
+}
+
+function openSiteSettingsDrawer() {
+  const drawer = document.getElementById("contentHubModal");
+
+  if (!drawer || siteSettingsOpen) return;
+
+  siteSettingsOpen = true;
+
+  clearTimeout(siteSettingsHideTimer);
+
+  siteSettingsRestoreFocus =
+    siteSettingsRestoreFocus || document.activeElement;
+
+  drawer.classList.remove("hidden");
+  drawer.classList.add("flex");
+
+  // Next frame so the browser can transition the panel in from the right.
+  requestAnimationFrame(() => {
+    drawer.classList.add("is-open");
+  });
+
+  drawer.setAttribute("aria-hidden", "false");
+
+  lockPageScroll(true);
+
+  if (!window.location.search.includes(SITE_SETTINGS_URL_FLAG)) {
+    safePushState("dashboard.php?" + SITE_SETTINGS_URL_FLAG);
+  }
+
+  const closeButton = drawer.querySelector(".theme-drawer-close");
+
+  if (closeButton) {
+    setTimeout(() => closeButton.focus(), 60);
+  }
+}
+
+function hideSiteSettingsDrawer() {
+  const drawer = document.getElementById("contentHubModal");
+
+  if (!drawer || !siteSettingsOpen) return;
+
+  siteSettingsOpen = false;
+
+  drawer.classList.remove("is-open");
+  drawer.setAttribute("aria-hidden", "true");
+
+  siteSettingsHideTimer = setTimeout(() => {
+    drawer.classList.remove("flex");
+    drawer.classList.add("hidden");
+  }, 280);
+
+  lockPageScroll(false);
+
+  if (siteSettingsRestoreFocus && typeof siteSettingsRestoreFocus.focus === "function") {
+    siteSettingsRestoreFocus.focus();
+  }
+
+  siteSettingsRestoreFocus = null;
+}
+
+function closeSiteSettingsDrawer() {
+  hideSiteSettingsDrawer();
+
+  stripUrlParam("open_content_hub");
+}
+
 function toggleContentHubModal() {
-  const modal = document.getElementById("contentHubModal");
-
-  if (!modal) return;
-
-  if (modal.classList.contains("hidden")) {
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
+  if (siteSettingsOpen) {
+    closeSiteSettingsDrawer();
   } else {
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
+    openSiteSettingsDrawer();
   }
 }

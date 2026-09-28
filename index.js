@@ -1,6 +1,11 @@
-const input = document.getElementById("searchInput");
-const suggestions = document.getElementById("suggestions");
-const searchForm = input.form; // Dynamically grab the parent form element
+(() => {
+  const input = document.getElementById("searchInput");
+  const suggestions = document.getElementById("suggestions");
+  const searchForm = input ? input.form : null;
+
+  if (!input || !suggestions || !searchForm) {
+    return;
+  }
 
 // --- 1. PREVENT BLANK OR UNMATCHED REDIRECTS ON ENTER ---
 searchForm.addEventListener("submit", function (e) {
@@ -62,7 +67,7 @@ input.addEventListener("keyup", function (e) {
 
             item.innerHTML = originalText.replace(
               regex,
-              '<span class="text-blue-600 font-bold">$1</span>',
+              '<span class="theme-match">$1</span>',
             );
 
             item.addEventListener("click", function () {
@@ -82,3 +87,4 @@ document.addEventListener("click", function (e) {
     suggestions.classList.add("hidden");
   }
 });
+})();

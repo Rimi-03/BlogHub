@@ -77,19 +77,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
+    <script>
+        (function () {
+            var savedTheme = null;
+
+            try {
+                savedTheme = localStorage.getItem('theme');
+            } catch (error) {
+                savedTheme = null;
+            }
+
+            var preferredTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            var theme = savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : preferredTheme;
+            document.documentElement.classList.toggle('dark', theme === 'dark');
+            document.documentElement.classList.toggle('light', theme === 'light');
+            document.documentElement.dataset.theme = theme;
+            document.documentElement.style.colorScheme = theme;
+        }());
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../theme.css">
+    <script src="../theme.js" defer></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body class="theme-page theme-login-page bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-md transition-all duration-300">
+    <div class="theme-login-topbar">
+        <button type="button" data-theme-toggle class="theme-toggle" aria-label="Switch to dark theme" aria-pressed="false" title="Switch to dark theme">
+            <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.4 15.2A8.5 8.5 0 018.8 3.6 8.5 8.5 0 1020.4 15.2z" />
+            </svg>
+            <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <circle cx="12" cy="12" r="4" />
+                <path stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3l1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3l1.42-1.42" />
+            </svg>
+        </button>
+    </div>
+
+    <div class="theme-login-card bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-md transition-all duration-300">
 
         <h2 class="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6">
             Login as Admin
         </h2>
 
         <?php if ($error) { ?>
-            <div class="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg mb-4 text-sm font-medium">
+            <div class="theme-alert-error bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg mb-4 text-sm font-medium">
                 <?= htmlspecialchars($error) ?>
             </div>
         <?php } ?>
@@ -121,7 +153,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <button
                 type="submit"
-                class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700 active:scale-[0.99] transition transform text-sm sm:text-base shadow-md">
+                class="theme-button theme-button-primary w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700 active:scale-[0.99] transition transform text-sm sm:text-base shadow-md">
                 Login
             </button>
         </form>
