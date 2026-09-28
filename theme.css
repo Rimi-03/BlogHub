@@ -890,13 +890,133 @@ html.dark .theme-hero::after {
   color: var(--accent) !important;
 }
 
+/* Action cells: keep Update/Edit + Delete on a single horizontal row */
+.theme-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.theme-action-row > form {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  margin: 0;
+}
+
+.theme-action-row > .theme-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.theme-action-row-start {
+  justify-content: flex-start;
+}
+
 .theme-content-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex-wrap: nowrap;
   border-radius: 16px;
   background: var(--surface-soft) !important;
 }
 
 .theme-content-row + .theme-content-row {
   margin-top: 1rem;
+}
+
+.theme-content-row > form {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  margin: 0;
+}
+
+.theme-content-row > form.theme-content-form {
+  flex: 1 1 auto;
+}
+
+.theme-content-row > form.theme-content-delete-form {
+  flex: 0 0 auto;
+}
+
+/* Site settings: glassmorphic slide-over drawer */
+.theme-drawer {
+  z-index: 60;
+  background: rgba(9, 13, 27, 0.5) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
+}
+
+.theme-drawer-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(9, 13, 27, 0.45);
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.theme-drawer.is-open .theme-drawer-scrim {
+  opacity: 1;
+}
+
+.theme-drawer-panel {
+  position: relative;
+  display: flex;
+  width: min(100%, 30rem);
+  max-width: 100%;
+  height: 100%;
+  flex-direction: column;
+  border: 1px solid var(--border) !important;
+  border-right: 0;
+  border-radius: 24px 0 0 24px;
+  background: var(--surface-elevated) !important;
+  box-shadow: -30px 0 90px rgba(0, 0, 0, 0.34);
+  opacity: 0;
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  transform: translateX(100%);
+  transition: transform 280ms cubic-bezier(0.22, 0.8, 0.28, 1), opacity 220ms ease;
+  will-change: transform;
+}
+
+.theme-drawer.is-open .theme-drawer-panel {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.theme-drawer-header,
+.theme-drawer-footer {
+  flex: 0 0 auto;
+  border-color: var(--border) !important;
+}
+
+.theme-drawer-eyebrow {
+  color: var(--accent-2) !important;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
+.theme-drawer-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+body.theme-page.drawer-open {
+  overflow: hidden;
+}
+
+@media (max-width: 480px) {
+  .theme-drawer-panel {
+    width: 100%;
+    border-radius: 0;
+  }
 }
 
 .theme-toast {

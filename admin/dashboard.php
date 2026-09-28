@@ -406,7 +406,8 @@ $is_form_active = ($edit_blog !== null);
             </div>
 
             <div class="theme-actions grid grid-cols-3 sm:flex items-center justify-center md:justify-end gap-2 w-full md:w-auto border-t md:border-0 pt-2 md:pt-0">
-                <button onclick="toggleContentHubModal()"
+                <button type="button" id="siteSettingsTrigger" onclick="toggleContentHubModal()" aria-haspopup="dialog"
+                    aria-controls="contentHubModal"
                     class="theme-button theme-button-purple text-[11px] sm:text-sm bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-3 sm:px-4 rounded-lg transition shadow-sm">
                     Site Settings
                 </button>
@@ -541,14 +542,14 @@ $is_form_active = ($edit_blog !== null);
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-0 pt-2 sm:pt-0 shrink-0">
-                                <button onclick="event.stopPropagation(); window.location.href='dashboard.php'?edit_id=<?= $blog['blog_id'] ?><?= $filter_author_id ? '&author_view_id=' . $filter_author_id : '' ?>'" class="theme-button theme-button-secondary text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium">
+                            <div class="theme-action-row w-full sm:w-auto justify-end border-t sm:border-0 pt-2 sm:pt-0 shrink-0">
+                                <button onclick="event.stopPropagation(); window.location.href='dashboard.php'?edit_id=<?= $blog['blog_id'] ?><?= $filter_author_id ? '&author_view_id=' . $filter_author_id : '' ?>'" class="theme-button theme-button-secondary text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-1.5 border border-gray-200 rounded-lg transition font-medium whitespace-nowrap">
                                     Edit
                                 </button>
-                                <form method="POST" action="dashboard.php" onsubmit="event.stopPropagation(); return confirm('Are you sure you want to permanently delete this blog story?');" class="inline">
+                                <form method="POST" action="dashboard.php" onsubmit="event.stopPropagation(); return confirm('Are you sure you want to permanently delete this blog story?');">
                                     <input type="hidden" name="action" value="delete_blog">
                                     <input type="hidden" name="blog_id" value="<?= $blog['blog_id'] ?>">
-                                    <button type="submit" onclick="event.stopPropagation();" class="theme-button theme-button-danger text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 border border-red-100 rounded-lg transition font-medium">
+                                    <button type="submit" onclick="event.stopPropagation();" class="theme-button theme-button-danger text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 border border-red-100 rounded-lg transition font-medium whitespace-nowrap">
                                         Delete
                                     </button>
                                 </form>
@@ -613,64 +614,82 @@ $is_form_active = ($edit_blog !== null);
         </div>
     </div>
 
-    <div id="contentHubModal"
-        class="theme-modal fixed inset-0 bg-black/40 hidden items-center justify-center p-4 z-50">
+    <!-- SITE SETTINGS: isolated glassmorphic slide-over drawer, hidden by default -->
+    <div id="contentHubModal" class="theme-drawer fixed inset-0 hidden z-50" role="dialog" aria-modal="true"
+        aria-labelledby="siteSettingsTitle" aria-hidden="true">
+        <div class="theme-drawer-scrim" data-drawer-close="true"></div>
 
-        <div class="theme-modal-card bg-white w-full max-w-3xl rounded-2xl p-6 shadow-xl max-h-[80vh] overflow-y-auto">
-
-            <div class="theme-panel-header flex justify-between border-b pb-3 mb-4">
-                <h2 class="font-bold text-lg">Site Settings</h2>
-                <button onclick="toggleContentHubModal()" class="text-xl">&times;</button>
+        <aside class="theme-drawer-panel ml-auto">
+            <div class="theme-drawer-header flex items-start justify-between gap-4 px-5 py-4 border-b">
+                <div class="min-w-0">
+                    <p class="theme-drawer-eyebrow uppercase">Global Configuration</p>
+                    <h2 id="siteSettingsTitle" class="font-bold text-lg leading-tight">Site Settings</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">These values power the public site content.</p>
+                </div>
+                <button type="button" onclick="toggleContentHubModal()" aria-label="Close site settings"
+                    class="theme-drawer-close text-gray-400 hover:text-gray-600 text-2xl font-medium leading-none transition">&times;</button>
             </div>
 
-            <?php
-            $contents = $conn->query("SELECT * FROM site_content ORDER BY content_key ASC");
-            while ($c = $contents->fetch_assoc()) {
-            ?>
+            <div class="theme-drawer-body px-5 py-4">
+                <?php
+                $contents = $conn->query("SELECT * FROM site_content ORDER BY content_key ASC");
+                $has_settings = ($contents->num_rows > 0);
+                while ($c = $contents->fetch_assoc()) {
+                ?>
 
-                <div class="theme-content-row border rounded-lg p-3 mb-4 bg-gray-50">
+                    <div class="theme-content-row border p-3 bg-gray-50">
 
-                    <!-- UPDATE FORM -->
-                    <form method="POST" action="dashboard.php">
-                        <input type="hidden" name="action" value="update_content">
-                        <input type="hidden" name="content_key" value="<?= $c['content_key'] ?>">
+                        <!-- UPDATE FORM -->
+                        <form method="POST" action="dashboard.php" class="theme-content-form">
+                            <input type="hidden" name="action" value="update_content">
+                            <input type="hidden" name="content_key" value="<?= $c['content_key'] ?>">
 
-                        <label class="text-xs font-bold text-gray-600">
-                            <?= htmlspecialchars($c['content_key']) ?>
-                        </label>
+                            <label class="text-xs font-bold text-gray-600 break-words">
+                                <?= htmlspecialchars($c['content_key']) ?>
+                            </label>
 
-                        <textarea name="content_value"
-                            class="theme-input w-full border p-2 rounded mt-1 text-sm"
-                            rows="2"><?= htmlspecialchars($c['content_value']) ?></textarea>
+                            <textarea name="content_value"
+                                class="theme-input w-full border p-2 rounded mt-1 text-sm"
+                                rows="2"><?= htmlspecialchars($c['content_value']) ?></textarea>
 
-                        <div class="flex gap-2 mt-2">
+                            <div class="theme-action-row theme-action-row-start mt-2">
 
-                            <!-- UPDATE BUTTON -->
-                            <button class="theme-button theme-button-primary bg-blue-600 text-white px-3 py-1 rounded text-xs">
-                                Update
+                                <!-- UPDATE BUTTON -->
+                                <button class="theme-button theme-button-primary bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                    Update
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- DELETE FORM -->
+                        <form method="POST" action="dashboard.php" class="theme-content-delete-form"
+                            onsubmit="return confirm('Delete this content permanently?');">
+
+                            <input type="hidden" name="action" value="delete_content">
+                            <input type="hidden" name="content_key" value="<?= $c['content_key'] ?>">
+
+                            <button class="theme-button theme-button-danger bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                Delete
                             </button>
-                        </div>
-                    </form>
 
-                    <!-- DELETE FORM -->
-                    <form method="POST" action="dashboard.php"
-                        onsubmit="return confirm('Delete this content permanently?');">
+                        </form>
 
-                        <input type="hidden" name="action" value="delete_content">
-                        <input type="hidden" name="content_key" value="<?= $c['content_key'] ?>">
+                    </div>
 
-                        <button class="theme-button theme-button-danger bg-red-600 text-white px-3 py-1 rounded text-xs">
-                            Delete
-                        </button>
+                <?php } ?>
 
-                    </form>
+                <?php if (!$has_settings) { ?>
+                    <div class="theme-empty-state text-center p-8 bg-white border rounded-xl text-gray-400 text-sm italic">
+                        No site settings found.
+                    </div>
+                <?php } ?>
+            </div>
 
-                </div>
-
-        </div>
-
-    <?php } ?>
-
+            <div class="theme-drawer-footer flex justify-end px-5 py-4 border-t">
+                <button type="button" onclick="toggleContentHubModal()"
+                    class="theme-button theme-button-secondary bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold px-4 py-2 rounded-xl transition">Close</button>
+            </div>
+        </aside>
     </div>
 
     <script>
