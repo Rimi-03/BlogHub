@@ -2,6 +2,7 @@
 session_start();
 require_once('../db.php');
 require_once('session_manager.php');
+require_once('site_settings_repo.php');
 
 // Force logout if token is missing or expired
 if (!isset($_SESSION["admin_id"]) || isTokenExpired()) {
@@ -9,6 +10,13 @@ if (!isset($_SESSION["admin_id"]) || isTokenExpired()) {
     session_destroy();
     header("Location: index.php?error=session_expired");
     exit();
+}
+
+// One-time, self-healing schema repair: drops duplicate content_key rows and
+// adds the UNIQUE index so a single INSERT can never create a second row.
+// Idempotent - once the index exists this is a single cheap metadata lookup.
+if (!siteContentEnsureIntegrity($conn)) {
+    error_log('BlogHub: site_content integrity migration failed.');
 }
 
 
@@ -94,24 +102,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
     // --- ACTION: UPDATE SITE CONTENT ---
     if ($_POST['action'] === 'update_content') {
 
-        $key = $_POST['content_key'];
-        $value = $_POST['content_value'];
+        $key = $_POST['content_key'] ?? '';
+        $value = $_POST['content_value'] ?? '';
 
-        $stmt = $conn->prepare("
-        INSERT INTO site_content (content_key, content_value)
-        VALUES (?, ?)
-        ON DUPLICATE KEY UPDATE content_value = VALUES(content_value)
-    ");
+        $inserted = false;
+        $ok = siteContentSave($conn, $key, $value, $inserted);
 
-        $stmt->bind_param("ss", $key, $value);
-
-        if ($stmt->execute()) {
-            $_SESSION['flash_message'] = "Content updated successfully!";
+        if ($ok) {
+            $_SESSION['flash_message'] = $inserted
+                ? "New setting \"$key\" created."
+                : "Content updated successfully!";
         } else {
             $_SESSION['flash_error'] = "Failed to update content.";
         }
-
-        $stmt->close();
 
         header("Location: dashboard.php?open_content_hub=1");
         exit();
@@ -120,18 +123,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
     // --- ACTION: DELETE SITE CONTENT ---
     if ($_POST['action'] === 'delete_content') {
 
-        $key = $_POST['content_key'];
+        $id = $_POST['id'] ?? 0;
+        $key = $_POST['content_key'] ?? '';
 
-        $stmt = $conn->prepare("DELETE FROM site_content WHERE content_key = ?");
-        $stmt->bind_param("s", $key);
-
-        if ($stmt->execute()) {
-            $_SESSION['flash_message'] = "Content deleted successfully!";
+        if (siteContentDeleteById($conn, $id)) {
+            $_SESSION['flash_message'] = "Content \"$key\" deleted successfully!";
         } else {
-            $_SESSION['flash_error'] = "Failed to delete content.";
+            $_SESSION['flash_error'] = "Failed to delete content: unknown or already removed entry.";
         }
-
-        $stmt->close();
 
         header("Location: dashboard.php?open_content_hub=1");
         exit();
@@ -671,7 +670,9 @@ if ($edit_cover_image_raw !== '') {
                         <!-- UPDATE FORM -->
                         <form method="POST" action="dashboard.php" class="theme-content-form">
                             <input type="hidden" name="action" value="update_content">
-                            <input type="hidden" name="content_key" value="<?= $c['content_key'] ?>">
+                            <input type="hidden" name="id" value="<?= (int) $c['id'] ?>">
+                            <input type="hidden" name="content_key"
+                                value="<?= htmlspecialchars($c['content_key'], ENT_QUOTES, 'UTF-8') ?>">
 
                             <label class="text-xs font-bold text-gray-600 break-words">
                                 <?= htmlspecialchars($c['content_key']) ?>
@@ -695,7 +696,9 @@ if ($edit_cover_image_raw !== '') {
                             onsubmit="return confirm('Delete this content permanently?');">
 
                             <input type="hidden" name="action" value="delete_content">
-                            <input type="hidden" name="content_key" value="<?= $c['content_key'] ?>">
+                            <input type="hidden" name="id" value="<?= (int) $c['id'] ?>">
+                            <input type="hidden" name="content_key"
+                                value="<?= htmlspecialchars($c['content_key'], ENT_QUOTES, 'UTF-8') ?>">
 
                             <button class="theme-button theme-button-danger bg-red-600 text-white px-3 py-1 rounded text-xs">
                                 Delete

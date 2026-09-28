@@ -21,7 +21,9 @@ function getContent($key)
         return $cache[$key];
     }
 
-    $stmt = $conn->prepare("SELECT content_value FROM site_content WHERE content_key = ?");
+    $stmt = $conn->prepare(
+        "SELECT content_value FROM site_content WHERE content_key = ? ORDER BY id DESC LIMIT 1"
+    );
     $stmt->bind_param("s", $key);
     $stmt->execute();
     $result = $stmt->get_result()->fetch_assoc();
